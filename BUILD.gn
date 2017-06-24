@@ -1,0 +1,41 @@
+import("//build/config/features.gni")
+
+
+static_library("chromium_media") {
+  output_name = "media_lib"
+  sources = [
+    "file_data_source.cc",
+    "file_data_source.h",
+    "mediaplayer_impl.cc",
+    "mediaplayer_impl.h",
+    "mediaplayer_params.cc",
+    "mediaplayer_params.h",
+  ]
+  deps = [
+    "//base",
+    "//cc",
+    "//cc/blink",
+    "//gpu",
+    "//media",
+    "//media:shared_memory_support",
+    "//net",
+    "//ppapi/features",
+    "//skia",
+    "//third_party/WebKit/public:blink",
+    "//ui/gfx",
+    "//ui/gfx/geometry",
+    "//url",
+  ]
+}
+
+executable("media_example") {
+  deps = [
+    "//base",
+    "//skia",
+    "//media",
+    ":chromium_media",
+  ]
+  sources = [
+    "main.cc",
+  ]
+}
