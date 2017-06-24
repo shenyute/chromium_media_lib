@@ -44,6 +44,7 @@ class FileDataSource : public DataSource {
   int64_t total_bytes_;
   base::Lock lock_;
   bool stop_signal_received_;
+  InitializeCB init_cb_;
 
   class ReadOperation;
   std::unique_ptr<ReadOperation> read_op_;

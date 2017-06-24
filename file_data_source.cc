@@ -76,9 +76,9 @@ void FileDataSource::Initialize(const InitializeCB& init_cb) {
     if (success)
       total_bytes_ = mapped_file_.length();
   }
-  InitializeCB init_callback = init_cb;
+  init_cb_ = init_cb;
   render_task_runner_->PostTask(
-      FROM_HERE, base::Bind(base::ResetAndReturn(&init_callback), success));
+      FROM_HERE, base::Bind(base::ResetAndReturn(&init_cb_), success));
 }
 
 void FileDataSource::Stop() {

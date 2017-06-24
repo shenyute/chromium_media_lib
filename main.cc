@@ -1,23 +1,42 @@
 #include "chromium_media_lib/mediaplayer_impl.h"
 
+#include "base/bind.h"
 #include "base/memory/ptr_util.h"
 #include "base/message_loop/message_loop.h"
 #include "base/threading/thread.h"
+#include "base/run_loop.h"
+
+struct MainParams {
+  std::unique_ptr<base::Thread> media_thread;
+  std::unique_ptr<base::Thread> worker_thread;
+  std::unique_ptr<media::MediaPlayerImpl> player;
+};
+
+void init(MainParams* params)
+{
+  std::unique_ptr<media::MediaLog> media_log =
+    base::MakeUnique<media::MediaLog>();
+  media::MediaPlayerParams media_params(base::MessageLoop::current()->task_runner(),
+      params->media_thread->task_runner(),
+      params->worker_thread->task_runner(),
+      std::move(media_log));
+  params->player =
+      base::MakeUnique<media::MediaPlayerImpl>(media_params);
+  params->player->Load(base::FilePath("/home/ytshen/proj/chromium/src/big-buck-bunny_trailer.webm"));
+}
 
 int main()
 {
-  base::MessageLoopForUI* ui = new base::MessageLoopForUI();
-  std::unique_ptr<base::Thread> media_thread(new base::Thread("Media"));
-  media_thread->Start();
-  std::unique_ptr<base::Thread> worker_thread(new base::Thread("Worker"));
-  worker_thread->Start();
-  std::unique_ptr<media::MediaLog> media_log =
-    base::MakeUnique<media::MediaLog>();
-  media::MediaPlayerParams params(ui->task_runner(),
-      media_thread->task_runner(),
-      worker_thread->task_runner(),
-      std::move(media_log));
-  std::unique_ptr<media::MediaPlayerImpl> player =
-      base::MakeUnique<media::MediaPlayerImpl>(params);
+  MainParams params;
+
+  params.media_thread.reset(new base::Thread("Media"));
+  params.worker_thread.reset(new base::Thread("Worker"));
+  params.media_thread->Start();
+  params.worker_thread->Start();
+
+  base::MessageLoopForUI message_loop;
+
+  message_loop.task_runner()->PostTask(FROM_HERE, base::Bind(&init, &params));
+  base::RunLoop().Run();
   return 0;
 }
