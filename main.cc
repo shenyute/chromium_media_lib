@@ -3,6 +3,7 @@
 #include "base/bind.h"
 #include "base/memory/ptr_util.h"
 #include "base/message_loop/message_loop.h"
+#include "base/task_scheduler/task_scheduler.h"
 #include "base/threading/thread.h"
 #include "base/run_loop.h"
 
@@ -14,6 +15,7 @@ struct MainParams {
 
 void init(MainParams* params)
 {
+  base::TaskScheduler::Create("renderer");
   std::unique_ptr<media::MediaLog> media_log =
     base::MakeUnique<media::MediaLog>();
   media::MediaPlayerParams media_params(base::MessageLoop::current()->task_runner(),

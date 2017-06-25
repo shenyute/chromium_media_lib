@@ -6,7 +6,9 @@
 #include "chromium_media_lib/file_data_source.h"
 #include "chromium_media_lib/mediaplayer_params.h"
 #include "media/base/media_observer.h"
+#include "media/base/media_tracks.h"
 #include "media/base/pipeline_impl.h"
+#include "media/base/renderer_factory.h"
 #include "media/filters/pipeline_controller.h"
 #include "url/gurl.h"
 
@@ -59,6 +61,10 @@ class MediaPlayerImpl
 
   std::unique_ptr<Renderer> CreateRenderer();
 
+  void OnEncryptedMediaInitData(EmeInitDataType init_data_type,
+                                const std::vector<uint8_t>& init_data);
+  void OnFFmpegMediaTracksUpdated(std::unique_ptr<MediaTracks> tracks);
+
  private:
   const scoped_refptr<base::SingleThreadTaskRunner> main_task_runner_;
   scoped_refptr<base::SingleThreadTaskRunner> media_task_runner_;
@@ -69,6 +75,7 @@ class MediaPlayerImpl
   PipelineController pipeline_controller_;
   GURL loaded_url_;
 
+  std::unique_ptr<RendererFactory> renderer_factory_;
   std::unique_ptr<FileDataSource> data_source_;
   std::unique_ptr<Demuxer> demuxer_;
 
