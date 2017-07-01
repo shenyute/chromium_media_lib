@@ -3,6 +3,7 @@
 
 #include <memory>
 
+#include "base/memory/ref_counted.h"
 #include "base/single_thread_task_runner.h"
 #include "media/base/media_log.h"
 
@@ -14,8 +15,8 @@ class MediaPlayerParams {
       scoped_refptr<base::SingleThreadTaskRunner> main_task_runner,
       scoped_refptr<base::SingleThreadTaskRunner> media_task_runner,
       scoped_refptr<base::TaskRunner> worker_task_runner,
-      std::unique_ptr<MediaLog> media_log);
-  std::unique_ptr<MediaLog> take_media_log() { return std::move(media_log_); }
+      scoped_refptr<MediaLog> media_log);
+  scoped_refptr<MediaLog> take_media_log() { return media_log_; }
   ~MediaPlayerParams();
 
   scoped_refptr<base::SingleThreadTaskRunner> main_task_runner() {
@@ -33,7 +34,7 @@ class MediaPlayerParams {
   scoped_refptr<base::SingleThreadTaskRunner> main_task_runner_;
   scoped_refptr<base::SingleThreadTaskRunner> media_task_runner_;
   scoped_refptr<base::TaskRunner> worker_task_runner_;
-  std::unique_ptr<MediaLog> media_log_;
+  scoped_refptr<MediaLog> media_log_;
 };
 
 }  // namespace media

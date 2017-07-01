@@ -1,11 +1,17 @@
 #include "chromium_media_lib/mediaplayer_impl.h"
 
+#include <memory>
+#include <string>
+
+#include "base/at_exit.h"
 #include "base/bind.h"
+#include "base/command_line.h"
 #include "base/memory/ptr_util.h"
 #include "base/message_loop/message_loop.h"
 #include "base/task_scheduler/task_scheduler.h"
 #include "base/threading/thread.h"
 #include "base/run_loop.h"
+#include "chromium_media_lib/media_context.h"
 
 struct MainParams {
   std::unique_ptr<base::Thread> media_thread;
@@ -15,9 +21,11 @@ struct MainParams {
 
 void init(MainParams* params)
 {
-  base::TaskScheduler::Create("renderer");
-  std::unique_ptr<media::MediaLog> media_log =
-    base::MakeUnique<media::MediaLog>();
+  std::unique_ptr<base::TaskScheduler::InitParams> task_scheduler_init_params =
+      media::MediaContext::Get()->GetDefaultTaskSchedulerInitParams();
+  base::TaskScheduler::CreateAndSetDefaultTaskScheduler("renderer",
+      *task_scheduler_init_params.get());
+  scoped_refptr<media::MediaLog> media_log = new media::MediaLog();
   media::MediaPlayerParams media_params(base::MessageLoop::current()->task_runner(),
       params->media_thread->task_runner(),
       params->worker_thread->task_runner(),
@@ -27,8 +35,10 @@ void init(MainParams* params)
   params->player->Load(base::FilePath("/home/ytshen/proj/chromium/src/big-buck-bunny_trailer.webm"));
 }
 
-int main()
+int main(int argc, const char* argv[])
 {
+  base::AtExitManager manager;
+  base::CommandLine::Init(argc, argv);
   MainParams params;
 
   params.media_thread.reset(new base::Thread("Media"));

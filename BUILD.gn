@@ -1,4 +1,5 @@
 import("//build/config/features.gni")
+import("//media/media_options.gni")
 
 
 static_library("chromium_media") {
@@ -10,18 +11,31 @@ static_library("chromium_media") {
     "mediaplayer_impl.h",
     "mediaplayer_params.cc",
     "mediaplayer_params.h",
+    "audiosourceprovider_impl.cc",
+    "audiosourceprovider_impl.h",
+    "media_context.cc",
+    "media_context.h",
+    "audio_renderer_sink_cache.h",
+    "audio_renderer_sink_cache_impl.cc",
+    "audio_renderer_sink_cache_impl.h",
+    "audio_renderer_mixer_manager.cc",
+    "audio_renderer_mixer_manager.h",
+    "audio_device_factory.cc",
+    "audio_device_factory.h",
+  ]
+  configs += [
+    "//build/config:precompiled_headers",
+    "//build/config/compiler:no_size_t_to_int_warning",
   ]
   deps = [
     "//base",
     "//cc",
-    "//cc/blink",
     "//gpu",
     "//media",
     "//media:shared_memory_support",
     "//net",
     "//ppapi/features",
     "//skia",
-    "//third_party/WebKit/public:blink",
     "//ui/gfx",
     "//ui/gfx/geometry",
     "//url",
@@ -38,4 +52,8 @@ executable("media_example") {
   sources = [
     "main.cc",
   ]
+  if (is_linux && !is_component_build) {
+    # Set rpath to find our own libfreetype even in a non-component build.
+    configs += [ "//build/config/gcc:rpath_for_built_shared_libraries" ]
+  }
 }

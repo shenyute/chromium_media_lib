@@ -1,6 +1,8 @@
 #ifndef CHROMIUM_MEDIA_LIB_FILE_DATA_SOURCE_H_
 #define CHROMIUM_MEDIA_LIB_FILE_DATA_SOURCE_H_
 
+#include <memory>
+
 #include "base/callback.h"
 #include "base/macros.h"
 #include "base/files/file_path.h"

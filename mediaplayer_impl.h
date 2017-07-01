@@ -1,8 +1,13 @@
 #ifndef CHROMIUM_MEDIA_LIB_MEDIAPLAYER_IMPL_H_
 #define CHROMIUM_MEDIA_LIB_MEDIAPLAYER_IMPL_H_
 
+#include <memory>
+#include <vector>
+
 #include "base/compiler_specific.h"
+#include "base/memory/ref_counted.h"
 #include "base/memory/weak_ptr.h"
+#include "chromium_media_lib/audiosourceprovider_impl.h"
 #include "chromium_media_lib/file_data_source.h"
 #include "chromium_media_lib/mediaplayer_params.h"
 #include "media/base/media_observer.h"
@@ -14,7 +19,7 @@
 
 namespace media {
 
-class MediaPlayerImpl
+class MEDIA_EXPORT MediaPlayerImpl
     : public NON_EXPORTED_BASE(Pipeline::Client),
       public MediaObserverClient,
       public base::SupportsWeakPtr<MediaPlayerImpl> {
@@ -69,7 +74,9 @@ class MediaPlayerImpl
   const scoped_refptr<base::SingleThreadTaskRunner> main_task_runner_;
   scoped_refptr<base::SingleThreadTaskRunner> media_task_runner_;
   scoped_refptr<base::TaskRunner> worker_task_runner_;
-  std::unique_ptr<MediaLog> media_log_;
+  scoped_refptr<MediaLog> media_log_;
+  scoped_refptr<AudioSourceProviderImpl> audio_source_provider_;
+  int owner_id_;
 
   // |pipeline_controller_| owns an instance of Pipeline.
   PipelineController pipeline_controller_;

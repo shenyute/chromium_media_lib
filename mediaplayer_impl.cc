@@ -7,6 +7,8 @@
 #include "base/callback.h"
 #include "base/callback_helpers.h"
 #include "base/memory/ptr_util.h"
+#include "chromium_media_lib/audio_device_factory.h"
+#include "chromium_media_lib/media_context.h"
 #include "media/base/bind_to_current_loop.h"
 #include "media/filters/ffmpeg_demuxer.h"
 #include "media/renderers/default_renderer_factory.h"
@@ -18,6 +20,7 @@ MediaPlayerImpl::MediaPlayerImpl(MediaPlayerParams& params)
       media_task_runner_(params.media_task_runner()),
       worker_task_runner_(params.worker_task_runner()),
       media_log_(params.take_media_log()),
+      owner_id_(1),
       pipeline_controller_(
           base::MakeUnique<PipelineImpl>(media_task_runner_, media_log_.get()),
           base::Bind(&MediaPlayerImpl::CreateRenderer,
@@ -27,7 +30,12 @@ MediaPlayerImpl::MediaPlayerImpl(MediaPlayerParams& params)
           base::Bind(&MediaPlayerImpl::OnBeforePipelineResume, AsWeakPtr()),
           base::Bind(&MediaPlayerImpl::OnPipelineResumed, AsWeakPtr()),
           base::Bind(&MediaPlayerImpl::OnError, AsWeakPtr())) {
-  renderer_factory = base::MakeUnique<media::DefaultRendererFactory>();
+  renderer_factory_ = base::MakeUnique<media::DefaultRendererFactory>(
+      media_log_.get(), MediaContext::Get()->GetDecoderFactory(),
+      DefaultRendererFactory::GetGpuFactoriesCB());
+  audio_source_provider_ =
+      new AudioSourceProviderImpl(AudioDeviceFactory::NewSwitchableAudioRendererSink(
+          owner_id_, 0, "", url::Origin()), media_log_);
 }
 
 MediaPlayerImpl::~MediaPlayerImpl() {
@@ -148,7 +156,14 @@ void MediaPlayerImpl::OnDemuxerOpened() {
 }
 
 std::unique_ptr<Renderer> MediaPlayerImpl::CreateRenderer() {
-  return nullptr;
+  DCHECK(main_task_runner_->BelongsToCurrentThread());
+  RequestSurfaceCB request_surface_cb;
+  return renderer_factory_->CreateRenderer(
+      media_task_runner_,
+      worker_task_runner_,
+      audio_source_provider_.get(),
+      nullptr,
+      request_surface_cb);
 }
 
 void MediaPlayerImpl::OnEncryptedMediaInitData(
