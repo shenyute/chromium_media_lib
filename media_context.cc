@@ -17,7 +17,11 @@ MediaContext* MediaContext::Get() {
   return g_context.Pointer();
 }
 
-MediaContext::MediaContext() {
+MediaContext::MediaContext()
+    : io_thread_(new base::Thread("Media IO")) {
+  io_thread_->Start();
+  audio_message_filter_ = new AudioMessageFilter(
+      io_thread_->task_runner());
   decoder_factory_.reset(new DecoderFactory());
 }
 
@@ -62,6 +66,10 @@ MediaContext::GetDefaultTaskSchedulerInitParams() {
       base::SchedulerWorkerPoolParams(StandbyThreadPolicy::LAZY,
                                       kMaxNumThreadsInForegroundBlockingPool,
                                       kSuggestedReclaimTime));
+}
+
+base::SingleThreadTaskRunner* MediaContext::io_task_runner() const {
+  return io_thread_->task_runner().get();
 }
 
 } // namespace media
