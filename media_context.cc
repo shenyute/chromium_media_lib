@@ -4,6 +4,8 @@
 #include "base/memory/ptr_util.h"
 #include "base/sys_info.h"
 #include "base/threading/thread_local.h"
+#include "chromium_media_lib/media_internals.h"
+#include "media/audio/audio_system_impl.h"
 
 namespace media {
 
@@ -23,6 +25,15 @@ MediaContext::MediaContext()
   audio_message_filter_ = new AudioMessageFilter(
       io_thread_->task_runner());
   decoder_factory_.reset(new DecoderFactory());
+  audio_manager_ = AudioManager::Create(
+      io_thread_->task_runner(),
+      io_thread_->task_runner(),
+      io_thread_->task_runner(),
+      MediaInternals::GetInstance());
+  CHECK(audio_manager_);
+
+  audio_system_ = media::AudioSystemImpl::Create(audio_manager_.get());
+  CHECK(audio_system_);
 }
 
 MediaContext::~MediaContext() {

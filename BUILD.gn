@@ -15,6 +15,8 @@ static_library("chromium_media") {
     "audiosourceprovider_impl.h",
     "media_context.cc",
     "media_context.h",
+    "media_internals.cc",
+    "media_internals.h",
     "audio_renderer_sink_cache.h",
     "audio_renderer_sink_cache_impl.cc",
     "audio_renderer_sink_cache_impl.h",
