@@ -33,6 +33,8 @@ MediaContext::MediaContext()
   CHECK(audio_manager_);
 
   audio_system_ = media::AudioSystemImpl::Create(audio_manager_.get());
+  audio_renderer_host_ = base::MakeUnique<AudioRendererHost>(audio_manager_.get(),
+      audio_system_.get());
   CHECK(audio_system_);
 }
 

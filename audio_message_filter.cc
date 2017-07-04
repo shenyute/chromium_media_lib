@@ -9,6 +9,7 @@
 #include "base/bind.h"
 #include "base/single_thread_task_runner.h"
 #include "base/strings/stringprintf.h"
+#include "chromium_media_lib/media_context.h"
 
 namespace media {
 
@@ -90,13 +91,12 @@ void AudioMessageFilter::AudioOutputIPCImpl::RequestDeviceAuthorization(
   DCHECK_EQ(stream_id_, kStreamIDNotSet);
   DCHECK(!stream_created_);
 
-  assert(false);
-  /*
-  filter_->io_task_runner_->PostTask(FROM_HERE,
-      base::Bind(&AudioMessageFilter::OnDeviceAuthorized,
-          stream_id_, 
-          */
   stream_id_ = filter_->delegates_.Add(delegate);
+  MediaContext::Get()->audio_renderer_host()->RequestDeviceAuthorization(
+      stream_id_, render_frame_id_,
+      session_id, device_id, security_origin,
+      base::Bind(&AudioMessageFilter::OnAuthorizationCompleted,
+                 filter_));
 }
 
 void AudioMessageFilter::AudioOutputIPCImpl::CreateStream(
@@ -131,7 +131,7 @@ void AudioMessageFilter::AudioOutputIPCImpl::SetVolume(double volume) {
   DCHECK(stream_created_);
 }
 
-void AudioMessageFilter::OnDeviceAuthorized(
+void AudioMessageFilter::OnAuthorizationCompleted(
     int stream_id,
     media::OutputDeviceStatus device_status,
     const media::AudioParameters& output_params,

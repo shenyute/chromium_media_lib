@@ -59,10 +59,10 @@ class MEDIA_EXPORT AudioMessageFilter
 
   // Received when the browser process has checked authorization to use an
   // audio output device.
-  void OnDeviceAuthorized(int stream_id,
-                          media::OutputDeviceStatus device_status,
-                          const media::AudioParameters& output_params,
-                          const std::string& matched_device_id);
+  void OnAuthorizationCompleted(int stream_id,
+      media::OutputDeviceStatus device_status,
+      const media::AudioParameters& output_params,
+      const std::string& matched_device_id);
 
   // Received when browser process has created an audio output stream.
   void OnStreamCreated(int stream_id,

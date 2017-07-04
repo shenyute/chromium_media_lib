@@ -26,6 +26,8 @@ static_library("chromium_media") {
     "audio_device_factory.h",
     "audio_message_filter.cc",
     "audio_message_filter.h",
+    "audio_renderer_host.cc",
+    "audio_renderer_host.h",
   ]
   configs += [
     "//build/config:precompiled_headers",
