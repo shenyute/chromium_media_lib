@@ -14,6 +14,7 @@
 #include "base/memory/shared_memory.h"
 #include "base/sync_socket.h"
 #include "base/synchronization/lock.h"
+#include "chromium_media_lib/audio_renderer_host.h"
 #include "media/base/media_export.h"
 #include "media/audio/audio_output_ipc.h"
 
@@ -28,7 +29,8 @@ namespace media {
 // IO thread (secondary thread of render process) it intercepts audio messages
 // and process them on IO thread since these messages are time critical.
 class MEDIA_EXPORT AudioMessageFilter
-    : public base::RefCountedThreadSafe<AudioMessageFilter> {
+    : public AudioRendererHost::AudioRendererHostClient,
+      public base::RefCountedThreadSafe<AudioMessageFilter> {
  public:
   explicit AudioMessageFilter(
       scoped_refptr<base::SingleThreadTaskRunner> io_task_runner);
@@ -64,15 +66,16 @@ class MEDIA_EXPORT AudioMessageFilter
       const media::AudioParameters& output_params,
       const std::string& matched_device_id);
 
+  // AudioRendererHostClient
   // Received when browser process has created an audio output stream.
   void OnStreamCreated(int stream_id,
                        base::SharedMemoryHandle handle,
                        base::SyncSocket::TransitDescriptor socket_descriptor,
-                       uint32_t length);
+                       uint32_t length) override;
 
   // Received when internal state of browser process' audio output device has
   // changed.
-  void OnStreamError(int stream_id);
+  void OnStreamError(int stream_id) override;
 
   // A map of stream ids to delegates; must only be accessed on
   // |io_task_runner_|.

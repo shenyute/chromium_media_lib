@@ -107,7 +107,8 @@ void AudioMessageFilter::AudioOutputIPCImpl::CreateStream(
   if (stream_id_ == kStreamIDNotSet)
     stream_id_ = filter_->delegates_.Add(delegate);
 
-  assert(false);
+  MediaContext::Get()->audio_renderer_host()->CreateStream(
+      stream_id_, render_frame_id_, params);
   stream_created_ = true;
 }
 

@@ -1,8 +1,15 @@
+#ifndef CHROMIUM_MEDIA_LIB_AUDIO_RENDERER_HOST_H_
+#define CHROMIUM_MEDIA_LIB_AUDIO_RENDERER_HOST_H_
+
 #include "media/base/media_export.h"
 
+#include <map>
 #include <string>
+#include <vector>
 
 #include "base/callback.h"
+#include "base/memory/shared_memory_handle.h"
+#include "base/sync_socket.h"
 #include "media/audio/audio_output_delegate.h"
 #include "media/base/output_device_info.h"
 #include "url/origin.h"
@@ -16,8 +23,19 @@ class AudioSystem;
 class MEDIA_EXPORT AudioRendererHost
     : public AudioOutputDelegate::EventHandler {
  public:
+  class AudioRendererHostClient {
+   public:
+     virtual void OnStreamCreated(int stream_id,
+         base::SharedMemoryHandle handle,
+         base::SyncSocket::TransitDescriptor socket_descriptor,
+         uint32_t length) = 0;
+     virtual void OnStreamError(int stream_id) = 0;
+  };
+  void SetClient(AudioRendererHostClient* client);
+
   AudioRendererHost(media::AudioManager* audio_manager,
-                    media::AudioSystem* audio_system);
+                    media::AudioSystem* audio_system,
+                    AudioRendererHostClient* client);
 
   using AuthorizationCompletedCallback =
       base::Callback<void(
@@ -32,6 +50,11 @@ class MEDIA_EXPORT AudioRendererHost
                                   const std::string& device_id,
                                   const url::Origin& security_origin,
                                   AuthorizationCompletedCallback cb);
+
+  void CreateStream(int stream_id,
+      int render_frame_id,
+      const media::AudioParameters& params);
+
 
   // AudioOutputDelegate::EventHandler implementation
   void OnStreamCreated(
@@ -49,8 +72,19 @@ class MEDIA_EXPORT AudioRendererHost
       const std::string& raw_device_id,
       const media::AudioParameters& output_params) const;
 
+  using AudioOutputDelegateVector =
+      std::vector<std::unique_ptr<media::AudioOutputDelegate>>;
+  AudioOutputDelegateVector::iterator
+      LookupIteratorById(int stream_id);
+  void OnCloseStream(int stream_id);
+
   media::AudioManager* const audio_manager_;
   media::AudioSystem* const audio_system_;
+  std::map<int, std::pair<bool, std::string>> authorizations_;
+  AudioRendererHostClient* client_;
+  AudioOutputDelegateVector delegates_;
 };
 
 } // namespace media
+
+#endif // CHROMIUM_MEDIA_LIB_AUDIO_RENDERER_HOST_H_
