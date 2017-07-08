@@ -21,6 +21,7 @@ MediaPlayerImpl::MediaPlayerImpl(MediaPlayerParams& params)
       worker_task_runner_(params.worker_task_runner()),
       media_log_(params.take_media_log()),
       owner_id_(1),
+      video_renderer_sink_(new VideoRendererSinkImpl),
       pipeline_controller_(
           base::MakeUnique<PipelineImpl>(media_task_runner_, media_log_.get()),
           base::Bind(&MediaPlayerImpl::CreateRenderer,
@@ -162,7 +163,7 @@ std::unique_ptr<Renderer> MediaPlayerImpl::CreateRenderer() {
       media_task_runner_,
       worker_task_runner_,
       audio_source_provider_.get(),
-      nullptr,
+      video_renderer_sink_.get(),
       request_surface_cb);
 }
 

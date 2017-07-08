@@ -1,6 +1,10 @@
 #include "chromium_media_lib/audio_renderer_host.h"
 
 #include "base/bind.h"
+#include "base/memory/ptr_util.h"
+#include "chromium_media_lib/audio_output_delegate_impl.h"
+#include "chromium_media_lib/media_context.h"
+#include "chromium_media_lib/media_internals.h"
 #include "media/audio/audio_device_description.h"
 #include "media/audio/audio_system.h"
 
@@ -10,8 +14,8 @@ void AudioRendererHost::SetClient(AudioRendererHostClient* client) {
   client_ = client;
 }
 
-AudioRendererHost::AudioRendererHost(media::AudioManager* audio_manager,
-                    media::AudioSystem* audio_system,
+AudioRendererHost::AudioRendererHost(AudioManager* audio_manager,
+                    AudioSystem* audio_system,
                     AudioRendererHostClient* client)
     : audio_manager_(audio_manager),
       audio_system_(audio_system),
@@ -28,16 +32,16 @@ void AudioRendererHost::RequestDeviceAuthorization(int stream_id,
                                 const std::string& device_id,
                                 const url::Origin& security_origin,
                                 AuthorizationCompletedCallback cb) {
-  if (media::AudioDeviceDescription::IsDefaultDevice(device_id)) {
+  if (AudioDeviceDescription::IsDefaultDevice(device_id)) {
     // Default device doesn't need authorization.
     authorizations_.insert(
         std::make_pair(stream_id, std::make_pair(true,
-          media::AudioDeviceDescription::kDefaultDeviceId)));
+          AudioDeviceDescription::kDefaultDeviceId)));
     audio_system_->GetOutputStreamParameters(
-        media::AudioDeviceDescription::kDefaultDeviceId,
+        AudioDeviceDescription::kDefaultDeviceId,
         base::Bind(&AudioRendererHost::DeviceParametersReceived,
           base::Unretained(this), stream_id, std::move(cb),
-          media::AudioDeviceDescription::kDefaultDeviceId));
+          AudioDeviceDescription::kDefaultDeviceId));
     return;
   }
   assert(false);
@@ -45,7 +49,7 @@ void AudioRendererHost::RequestDeviceAuthorization(int stream_id,
 
 void AudioRendererHost::CreateStream(int stream_id,
       int render_frame_id,
-      const media::AudioParameters& params) {
+      const AudioParameters& params) {
   const auto& auth_data = authorizations_.find(stream_id);
   std::string device_unique_id;
   if (auth_data != authorizations_.end()) {
@@ -56,19 +60,26 @@ void AudioRendererHost::CreateStream(int stream_id,
     device_unique_id.swap(auth_data->second.second);
     authorizations_.erase(auth_data);
   }
-  assert(false);
+  MediaInternals* const media_internals = MediaInternals::GetInstance();
+  std::unique_ptr<AudioLog> audio_log = media_internals->CreateAudioLog(
+      AudioLogFactory::AUDIO_OUTPUT_CONTROLLER);
+  delegates_.push_back(
+      base::WrapUnique<AudioOutputDelegate>(new AudioOutputDelegateImpl(
+          this, audio_manager_, std::move(audio_log),
+          stream_id, render_frame_id,
+          params, device_unique_id, MediaContext::Get()->io_task_runner())));
 }
 
   void AudioRendererHost::DeviceParametersReceived(
     int stream_id,
     AuthorizationCompletedCallback cb,
     const std::string& raw_device_id,
-    const media::AudioParameters& output_params) const {
+    const AudioParameters& output_params) const {
   DCHECK(!raw_device_id.empty());
 
-  cb.Run(stream_id, media::OUTPUT_DEVICE_STATUS_OK,
+  cb.Run(stream_id, OUTPUT_DEVICE_STATUS_OK,
       output_params.IsValid() ? output_params
-      : media::AudioParameters::UnavailableDeviceParams(),
+      : AudioParameters::UnavailableDeviceParams(),
       raw_device_id);
   }
 
@@ -87,7 +98,7 @@ AudioRendererHost::AudioOutputDelegateVector::iterator
 AudioRendererHost::LookupIteratorById(int stream_id) {
   return std::find_if(
       delegates_.begin(), delegates_.end(),
-      [stream_id](const std::unique_ptr<media::AudioOutputDelegate>& d) {
+      [stream_id](const std::unique_ptr<AudioOutputDelegate>& d) {
         return d->GetStreamId() == stream_id;
       });
 }

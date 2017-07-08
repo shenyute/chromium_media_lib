@@ -28,6 +28,12 @@ static_library("chromium_media") {
     "audio_message_filter.h",
     "audio_renderer_host.cc",
     "audio_renderer_host.h",
+    "audio_output_delegate_impl.cc",
+    "audio_output_delegate_impl.h",
+    "audio_sync_reader.cc",
+    "audio_sync_reader.h",
+    "video_renderer_sink_impl.cc",
+    "video_renderer_sink_impl.h",
   ]
   configs += [
     "//build/config:precompiled_headers",

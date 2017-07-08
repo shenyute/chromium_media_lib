@@ -10,6 +10,7 @@
 #include "chromium_media_lib/audiosourceprovider_impl.h"
 #include "chromium_media_lib/file_data_source.h"
 #include "chromium_media_lib/mediaplayer_params.h"
+#include "chromium_media_lib/video_renderer_sink_impl.h"
 #include "media/base/media_observer.h"
 #include "media/base/media_tracks.h"
 #include "media/base/pipeline_impl.h"
@@ -78,6 +79,7 @@ class MEDIA_EXPORT MediaPlayerImpl
   scoped_refptr<AudioSourceProviderImpl> audio_source_provider_;
   int owner_id_;
 
+  std::unique_ptr<VideoRendererSinkImpl> video_renderer_sink_;
   // |pipeline_controller_| owns an instance of Pipeline.
   PipelineController pipeline_controller_;
   GURL loaded_url_;
