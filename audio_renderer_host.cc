@@ -70,23 +70,46 @@ void AudioRendererHost::CreateStream(int stream_id,
           params, device_unique_id, MediaContext::Get()->io_task_runner())));
 }
 
-  void AudioRendererHost::DeviceParametersReceived(
-    int stream_id,
-    AuthorizationCompletedCallback cb,
-    const std::string& raw_device_id,
-    const AudioParameters& output_params) const {
-  DCHECK(!raw_device_id.empty());
-
-  cb.Run(stream_id, OUTPUT_DEVICE_STATUS_OK,
-      output_params.IsValid() ? output_params
-      : AudioParameters::UnavailableDeviceParams(),
-      raw_device_id);
+void AudioRendererHost::PlayStream(int stream_id) {
+  media::AudioOutputDelegate* delegate = LookupById(stream_id);
+  if (!delegate) {
+    OnStreamError(stream_id);
+    return;
   }
+
+  delegate->OnPlayStream();
+}
+
+void AudioRendererHost::DeviceParametersReceived(
+  int stream_id,
+  AuthorizationCompletedCallback cb,
+  const std::string& raw_device_id,
+  const AudioParameters& output_params) const {
+DCHECK(!raw_device_id.empty());
+
+cb.Run(stream_id, OUTPUT_DEVICE_STATUS_OK,
+    output_params.IsValid() ? output_params
+    : AudioParameters::UnavailableDeviceParams(),
+    raw_device_id);
+}
 
 void AudioRendererHost::OnStreamCreated(
     int stream_id,
     base::SharedMemory* shared_memory,
     std::unique_ptr<base::CancelableSyncSocket> foreign_socket) {
+  base::SharedMemoryHandle foreign_memory_handle;
+  base::SyncSocket::TransitDescriptor socket_descriptor;
+  base::ProcessHandle handle = base::GetCurrentProcessHandle();
+  size_t shared_memory_size = shared_memory->requested_size();
+  if (!(shared_memory->ShareToProcess(handle, &foreign_memory_handle) &&
+        foreign_socket->PrepareTransitDescriptor(handle,
+                                                 &socket_descriptor))) {
+    // Something went wrong in preparing the IPC handles.
+    client_->OnStreamError(stream_id);
+    return;
+  }
+  client_->OnStreamCreated(stream_id, foreign_memory_handle,
+      socket_descriptor, base::checked_cast<uint32_t>(shared_memory_size));
 }
 
 void AudioRendererHost::OnStreamError(int stream_id) {
@@ -115,6 +138,11 @@ void AudioRendererHost::OnCloseStream(int stream_id) {
 
   std::swap(*i, delegates_.back());
   delegates_.pop_back();
+}
+
+media::AudioOutputDelegate* AudioRendererHost::LookupById(int stream_id) {
+  auto i = LookupIteratorById(stream_id);
+  return i != delegates_.end() ? i->get() : nullptr;
 }
 
 } // namespace media

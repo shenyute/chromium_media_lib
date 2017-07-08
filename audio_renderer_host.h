@@ -34,15 +34,15 @@ class MEDIA_EXPORT AudioRendererHost
   };
   void SetClient(AudioRendererHostClient* client);
 
-  AudioRendererHost(media::AudioManager* audio_manager,
-                    media::AudioSystem* audio_system,
+  AudioRendererHost(AudioManager* audio_manager,
+                    AudioSystem* audio_system,
                     AudioRendererHostClient* client);
 
   using AuthorizationCompletedCallback =
       base::Callback<void(
                           int stream_id,
-                          media::OutputDeviceStatus status,
-                          const media::AudioParameters& output_params,
+                          OutputDeviceStatus status,
+                          const AudioParameters& output_params,
                           const std::string& matched_device_id)>;
 
   void RequestDeviceAuthorization(int stream_id,
@@ -54,8 +54,8 @@ class MEDIA_EXPORT AudioRendererHost
 
   void CreateStream(int stream_id,
       int render_frame_id,
-      const media::AudioParameters& params);
-
+      const AudioParameters& params);
+  void PlayStream(int stream_id);
 
   // AudioOutputDelegate::EventHandler implementation
   void OnStreamCreated(
@@ -71,16 +71,17 @@ class MEDIA_EXPORT AudioRendererHost
       int stream_id,
       AuthorizationCompletedCallback cb,
       const std::string& raw_device_id,
-      const media::AudioParameters& output_params) const;
+      const AudioParameters& output_params) const;
 
   using AudioOutputDelegateVector =
-      std::vector<std::unique_ptr<media::AudioOutputDelegate>>;
+      std::vector<std::unique_ptr<AudioOutputDelegate>>;
   AudioOutputDelegateVector::iterator
       LookupIteratorById(int stream_id);
   void OnCloseStream(int stream_id);
+  AudioOutputDelegate* LookupById(int stream_id);
 
-  media::AudioManager* const audio_manager_;
-  media::AudioSystem* const audio_system_;
+  AudioManager* const audio_manager_;
+  AudioSystem* const audio_system_;
   std::map<int, std::pair<bool, std::string>> authorizations_;
   AudioRendererHostClient* client_;
   AudioOutputDelegateVector delegates_;

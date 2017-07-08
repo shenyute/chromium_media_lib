@@ -114,6 +114,8 @@ void AudioMessageFilter::AudioOutputIPCImpl::CreateStream(
 
 void AudioMessageFilter::AudioOutputIPCImpl::PlayStream() {
   DCHECK(stream_created_);
+  MediaContext::Get()->audio_renderer_host()->PlayStream(
+      stream_id_);
 }
 
 void AudioMessageFilter::AudioOutputIPCImpl::PauseStream() {
