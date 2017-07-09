@@ -108,6 +108,9 @@ void AudioRendererHost::OnStreamCreated(
     client_->OnStreamError(stream_id);
     return;
   }
+  // NOTE: It is important to release handle otherwise the socket_descriptor will be
+  // invalide after foreign_socket destroy
+  foreign_socket->Release();
   client_->OnStreamCreated(stream_id, foreign_memory_handle,
       socket_descriptor, base::checked_cast<uint32_t>(shared_memory_size));
 }
