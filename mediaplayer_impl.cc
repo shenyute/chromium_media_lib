@@ -15,12 +15,17 @@
 
 namespace media {
 
+const double kMinRate = 0.0625;
+const double kMaxRate = 16.0;
+
 MediaPlayerImpl::MediaPlayerImpl(MediaPlayerParams& params)
     : main_task_runner_(params.main_task_runner()),
       media_task_runner_(params.media_task_runner()),
       worker_task_runner_(params.worker_task_runner()),
       media_log_(params.take_media_log()),
       owner_id_(1),
+      playback_rate_(0.0),
+      paused_(true),
       video_renderer_sink_(new VideoRendererSinkImpl),
       pipeline_controller_(
           base::MakeUnique<PipelineImpl>(media_task_runner_, media_log_.get()),
@@ -53,6 +58,8 @@ void MediaPlayerImpl::Load(const base::FilePath& path) {
 }
 
 void MediaPlayerImpl::Play() {
+  paused_ = false;
+  pipeline_controller_.SetPlaybackRate(playback_rate_);
 }
 
 void MediaPlayerImpl::Pause() {
@@ -66,18 +73,42 @@ void MediaPlayerImpl::Seek(double seconds) {
 }
 
 void MediaPlayerImpl::SetRate(double rate) {
+  DCHECK(main_task_runner_->BelongsToCurrentThread());
+
+  // TODO(kylep): Remove when support for negatives is added. Also, modify the
+  // following checks so rewind uses reasonable values also.
+  if (rate < 0.0)
+    return;
+
+  // Limit rates to reasonable values by clamping.
+  if (rate != 0.0) {
+    if (rate < kMinRate)
+      rate = kMinRate;
+    else if (rate > kMaxRate)
+      rate = kMaxRate;
+  }
+
+  playback_rate_ = rate;
+  if (!paused_)
+    pipeline_controller_.SetPlaybackRate(rate);
 }
 
 void MediaPlayerImpl::SetVolume(double volume) {
 }
 
 void MediaPlayerImpl::OnError(PipelineStatus status) {
+  DCHECK(main_task_runner_->BelongsToCurrentThread());
+  NOTREACHED();
 }
 
 void MediaPlayerImpl::OnEnded() {
+  DCHECK(main_task_runner_->BelongsToCurrentThread());
+  NOTREACHED();
 }
 
 void MediaPlayerImpl::OnMetadata(PipelineMetadata metadata) {
+  DCHECK(main_task_runner_->BelongsToCurrentThread());
+  pipeline_metadata_ = metadata;
 }
 
 void MediaPlayerImpl::OnBufferingStateChange(BufferingState state) {

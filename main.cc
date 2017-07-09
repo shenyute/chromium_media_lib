@@ -33,6 +33,8 @@ void init(MainParams* params)
   params->player =
       base::MakeUnique<media::MediaPlayerImpl>(media_params);
   params->player->Load(base::FilePath("/home/ytshen/proj/chromium/src/big-buck-bunny_trailer.webm"));
+  params->player->SetRate(1.0);
+  params->player->Play();
 }
 
 int main(int argc, const char* argv[])

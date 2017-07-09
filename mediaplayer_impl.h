@@ -79,6 +79,10 @@ class MEDIA_EXPORT MediaPlayerImpl
   scoped_refptr<AudioSourceProviderImpl> audio_source_provider_;
   int owner_id_;
 
+  PipelineMetadata pipeline_metadata_;
+  double playback_rate_;
+  bool paused_;
+
   std::unique_ptr<VideoRendererSinkImpl> video_renderer_sink_;
   // |pipeline_controller_| owns an instance of Pipeline.
   PipelineController pipeline_controller_;
