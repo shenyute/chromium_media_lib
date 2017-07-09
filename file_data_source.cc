@@ -144,7 +144,7 @@ void FileDataSource::ReadTask() {
       int bytes_read =
           static_cast<int>(std::min<int64_t>(available,
                 static_cast<int64_t>(read_op_->size())));
-      memcpy(read_op_->data(), file_data, bytes_read);
+      memcpy(read_op_->data(), file_data + read_op_->position(), bytes_read);
       ReadOperation::Run(std::move(read_op_), bytes_read);
       return;
     }
