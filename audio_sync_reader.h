@@ -49,13 +49,20 @@ class AudioSyncReader : public AudioOutputController::SyncReader {
                   std::unique_ptr<base::SharedMemory> shared_memory,
                   std::unique_ptr<base::CancelableSyncSocket> socket,
                   std::unique_ptr<base::CancelableSyncSocket> foreign_socket);
+  bool WaitUntilDataIsReady();
+
   std::unique_ptr<base::SharedMemory> shared_memory_;
   std::unique_ptr<base::CancelableSyncSocket> socket_;
   std::unique_ptr<base::CancelableSyncSocket> foreign_socket_;
   std::unique_ptr<media::AudioBus> output_bus_;
   const int packet_size_;
 
+  size_t renderer_callback_count_;
+  size_t renderer_missed_callback_count_;
+  size_t trailing_renderer_missed_callback_count_;
+
   const base::TimeDelta maximum_wait_time_;
+  uint32_t buffer_index_;
 
   DISALLOW_COPY_AND_ASSIGN(AudioSyncReader);
 };
