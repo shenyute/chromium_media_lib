@@ -29,7 +29,7 @@ MediaPlayerImpl::MediaPlayerImpl(MediaPlayerParams& params)
       seeking_(false),
       ended_(false),
       volume_(1.0),
-      video_renderer_sink_(new VideoRendererSinkImpl),
+      video_renderer_sink_(new VideoRendererSinkImpl(media_task_runner_)),
       pipeline_controller_(
           base::MakeUnique<PipelineImpl>(media_task_runner_, media_log_.get()),
           base::Bind(&MediaPlayerImpl::CreateRenderer,
