@@ -26,6 +26,9 @@ MediaPlayerImpl::MediaPlayerImpl(MediaPlayerParams& params)
       owner_id_(1),
       playback_rate_(0.0),
       paused_(true),
+      seeking_(false),
+      ended_(false),
+      volume_(1.0),
       video_renderer_sink_(new VideoRendererSinkImpl),
       pipeline_controller_(
           base::MakeUnique<PipelineImpl>(media_task_runner_, media_log_.get()),
@@ -58,11 +61,17 @@ void MediaPlayerImpl::Load(const base::FilePath& path) {
 }
 
 void MediaPlayerImpl::Play() {
+  DCHECK(main_task_runner_->BelongsToCurrentThread());
   paused_ = false;
   pipeline_controller_.SetPlaybackRate(playback_rate_);
 }
 
 void MediaPlayerImpl::Pause() {
+  DCHECK(main_task_runner_->BelongsToCurrentThread());
+  paused_ = true;
+  pipeline_controller_.SetPlaybackRate(0.0);
+  paused_time_ =
+      ended_ ? GetPipelineMediaDuration() : pipeline_controller_.GetMediaTime();
 }
 
 bool MediaPlayerImpl::SupportsSave() const {
@@ -70,6 +79,18 @@ bool MediaPlayerImpl::SupportsSave() const {
 }
 
 void MediaPlayerImpl::Seek(double seconds) {
+  DCHECK(main_task_runner_->BelongsToCurrentThread());
+  DoSeek(base::TimeDelta::FromSecondsD(seconds), true);
+}
+
+void MediaPlayerImpl::DoSeek(base::TimeDelta time, bool time_updated) {
+  DCHECK(main_task_runner_->BelongsToCurrentThread());
+
+  ended_ = false;
+  seeking_ = true;
+  if (paused_)
+    paused_time_ = time;
+  pipeline_controller_.Seek(time, time_updated);
 }
 
 void MediaPlayerImpl::SetRate(double rate) {
@@ -94,6 +115,9 @@ void MediaPlayerImpl::SetRate(double rate) {
 }
 
 void MediaPlayerImpl::SetVolume(double volume) {
+  DCHECK(main_task_runner_->BelongsToCurrentThread());
+  volume_ = volume;
+  pipeline_controller_.SetVolume(volume_);
 }
 
 void MediaPlayerImpl::OnError(PipelineStatus status) {
@@ -101,9 +125,15 @@ void MediaPlayerImpl::OnError(PipelineStatus status) {
   NOTREACHED();
 }
 
+base::TimeDelta MediaPlayerImpl::GetPipelineMediaDuration() const {
+  DCHECK(main_task_runner_->BelongsToCurrentThread());
+
+  return pipeline_controller_.GetMediaDuration();
+}
+
 void MediaPlayerImpl::OnEnded() {
   DCHECK(main_task_runner_->BelongsToCurrentThread());
-  NOTREACHED();
+  ended_ = true;
 }
 
 void MediaPlayerImpl::OnMetadata(PipelineMetadata metadata) {
@@ -112,6 +142,8 @@ void MediaPlayerImpl::OnMetadata(PipelineMetadata metadata) {
 }
 
 void MediaPlayerImpl::OnBufferingStateChange(BufferingState state) {
+  if (!pipeline_controller_.IsStable())
+    return;
 }
 
 void MediaPlayerImpl::OnDurationChange() {
@@ -119,9 +151,13 @@ void MediaPlayerImpl::OnDurationChange() {
 
 void MediaPlayerImpl::OnAddTextTrack(const TextTrackConfig& config,
                     const AddTextTrackDoneCB& done_cb) {
+  // TODO:
+  NOTREACHED();
 }
 
 void MediaPlayerImpl::OnWaitingForDecryptionKey() {
+  // TODO:
+  NOTREACHED();
 }
 
 void MediaPlayerImpl::OnVideoNaturalSizeChange(const gfx::Size& size) {
@@ -173,6 +209,11 @@ void MediaPlayerImpl::StartPipeline() {
 }
 
 void MediaPlayerImpl::OnPipelineSeeked(bool time_updated) {
+  seeking_ = false;
+  seek_time_ = base::TimeDelta();
+  if (paused_) {
+    paused_time_ = pipeline_controller_.GetMediaTime();
+  }
 }
 
 void MediaPlayerImpl::OnPipelineSuspended() {

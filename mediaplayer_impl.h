@@ -37,6 +37,7 @@ class MEDIA_EXPORT MediaPlayerImpl
   void Seek(double seconds);
   void SetRate(double rate);
   void SetVolume(double volume);
+  base::TimeDelta GetPipelineMediaDuration() const;
 
  private:
   // Pipeline::Client overrides.
@@ -66,6 +67,7 @@ class MEDIA_EXPORT MediaPlayerImpl
   void OnDemuxerOpened();
 
   std::unique_ptr<Renderer> CreateRenderer();
+  void DoSeek(base::TimeDelta time, bool time_updated);
 
   void OnEncryptedMediaInitData(EmeInitDataType init_data_type,
                                 const std::vector<uint8_t>& init_data);
@@ -81,7 +83,15 @@ class MEDIA_EXPORT MediaPlayerImpl
 
   PipelineMetadata pipeline_metadata_;
   double playback_rate_;
+
   bool paused_;
+  base::TimeDelta paused_time_;
+
+  bool seeking_;
+  base::TimeDelta seek_time_;
+
+  bool ended_;
+  double volume_;
 
   std::unique_ptr<VideoRendererSinkImpl> video_renderer_sink_;
   // |pipeline_controller_| owns an instance of Pipeline.

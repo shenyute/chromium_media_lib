@@ -86,7 +86,7 @@ AudioOutputDelegateImpl::AudioOutputDelegateImpl(
 
 AudioOutputDelegateImpl::~AudioOutputDelegateImpl() {
   DCHECK(io_task_runner_->BelongsToCurrentThread());
-  // XXXX  UpdatePlayingState(false);
+  UpdatePlayingState(false);
   audio_log_->OnClosed(stream_id_);
 
   // Since the ownership of |controller_| is shared, we instead use its Close
