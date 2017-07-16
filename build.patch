@@ -1,0 +1,12 @@
+diff --git a/BUILD.gn b/BUILD.gn
+index 5559319..435f7b5 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -157,6 +157,7 @@ group("gn_all") {
+     # TODO(GYP): Figure out which of these should actually build on iOS,
+     # and whether there should be other targets that are iOS-only and missing.
+     deps += [
++      "//chromium_media_lib:media_example",
+       "//cc:cc_unittests",
+       "//chrome/test:telemetry_perf_unittests",
+       "//chrome/test:unit_tests",
