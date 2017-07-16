@@ -62,7 +62,7 @@ executable("media_example") {
     ":chromium_media",
   ]
   sources = [
-    "main.cc",
+    "example/main.cc",
   ]
   if (is_linux && !is_component_build) {
     # Set rpath to find our own libfreetype even in a non-component build.

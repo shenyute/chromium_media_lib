@@ -30,6 +30,7 @@ class VideoFrameObserver
 };
 
 struct MainParams {
+  std::string media_file_;
   std::unique_ptr<base::Thread> media_thread;
   std::unique_ptr<base::Thread> worker_thread;
   std::unique_ptr<media::MediaPlayerImpl> player;
@@ -49,7 +50,7 @@ void init(MainParams* params) {
   media_params.SetVideoRendererSinkClient(params->video_renderer_.get());
   params->player =
       base::MakeUnique<media::MediaPlayerImpl>(media_params);
-  params->player->Load(base::FilePath("/home/ytshen/proj/chromium/src/big-buck-bunny_trailer.webm"));
+  params->player->Load(base::FilePath(params->media_file_));
   params->player->SetRate(1.0);
   params->player->Play();
 }
@@ -57,8 +58,15 @@ void init(MainParams* params) {
 int main(int argc, const char* argv[]) {
   base::AtExitManager manager;
   base::CommandLine::Init(argc, argv);
-  MainParams params;
+  const char media_file[] = "media-file";
 
+  base::CommandLine* command_line = base::CommandLine::ForCurrentProcess();
+  if (!command_line->HasSwitch(media_file)) {
+    LOG(INFO) << "Usage:\n ./media_example --media-file=<file full path>";
+    return 0;
+  }
+  MainParams params;
+  params.media_file_ = command_line->GetSwitchValueASCII(media_file);
   params.media_thread.reset(new base::Thread("Media"));
   params.worker_thread.reset(new base::Thread("Worker"));
   params.media_thread->Start();
