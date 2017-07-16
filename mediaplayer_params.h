@@ -12,6 +12,8 @@
 
 namespace media {
 
+class VideoRendererSinkClient;
+
 class MediaPlayerParams {
  public:
   MediaPlayerParams(
@@ -32,12 +34,20 @@ class MediaPlayerParams {
     return worker_task_runner_;
   }
 
+  void SetVideoRendererSinkClient(VideoRendererSinkClient* client) {
+    video_renderer_sink_client_ = client;
+  }
+
+  VideoRendererSinkClient* video_renderer_sink_client() {
+    return video_renderer_sink_client_;
+  }
 
  private:
   scoped_refptr<base::SingleThreadTaskRunner> main_task_runner_;
   scoped_refptr<base::SingleThreadTaskRunner> media_task_runner_;
   scoped_refptr<base::TaskRunner> worker_task_runner_;
   scoped_refptr<MediaLog> media_log_;
+  VideoRendererSinkClient* video_renderer_sink_client_;
 };
 
 }  // namespace media

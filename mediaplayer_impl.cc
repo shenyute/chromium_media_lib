@@ -43,6 +43,8 @@ MediaPlayerImpl::MediaPlayerImpl(MediaPlayerParams& params)
           base::Bind(&MediaPlayerImpl::OnBeforePipelineResume, AsWeakPtr()),
           base::Bind(&MediaPlayerImpl::OnPipelineResumed, AsWeakPtr()),
           base::Bind(&MediaPlayerImpl::OnError, AsWeakPtr())) {
+  if (params.video_renderer_sink_client())
+    video_renderer_sink_->SetVideoRendererSinkClient(params.video_renderer_sink_client());
   renderer_factory_ = base::MakeUnique<media::DefaultRendererFactory>(
       media_log_.get(), MediaContext::Get()->GetDecoderFactory(),
       DefaultRendererFactory::GetGpuFactoriesCB());
@@ -133,6 +135,12 @@ base::TimeDelta MediaPlayerImpl::GetPipelineMediaDuration() const {
   DCHECK(main_task_runner_->BelongsToCurrentThread());
 
   return pipeline_controller_.GetMediaDuration();
+}
+
+void MediaPlayerImpl::SetVideoRendererSinkClient(VideoRendererSinkClient* client) {
+  DCHECK(main_task_runner_->BelongsToCurrentThread());
+  DCHECK(client);
+  video_renderer_sink_->SetVideoRendererSinkClient(client);
 }
 
 void MediaPlayerImpl::OnEnded() {

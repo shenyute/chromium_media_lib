@@ -42,6 +42,7 @@ class MEDIA_EXPORT MediaPlayerImpl
   void SetRate(double rate);
   void SetVolume(double volume);
   base::TimeDelta GetPipelineMediaDuration() const;
+  void SetVideoRendererSinkClient(VideoRendererSinkClient* client);
 
  private:
   // Pipeline::Client overrides.

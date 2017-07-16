@@ -38,9 +38,13 @@ VideoRendererSinkImpl::VideoRendererSinkImpl(
 VideoRendererSinkImpl::~VideoRendererSinkImpl() {
 }
 
-void VideoRendererSinkImpl::SetVideoFrameProviderClient(
+void VideoRendererSinkImpl::SetVideoRendererSinkClient(
     VideoRendererSinkClient* client) {
-  DCHECK(compositor_task_runner_->BelongsToCurrentThread());
+  if (!compositor_task_runner_->BelongsToCurrentThread()) {
+    compositor_task_runner_->PostTask(FROM_HERE, base::Bind(&VideoRendererSinkImpl::
+        SetVideoRendererSinkClient, base::Unretained(this), client));
+    return;
+  }
   client_ = client;
   if (rendering_ && client_)
     client_->StartRendering();

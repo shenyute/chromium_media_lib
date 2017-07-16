@@ -27,7 +27,7 @@ class MEDIA_EXPORT VideoRendererSinkImpl
     const scoped_refptr<base::SingleThreadTaskRunner>& compositor_task_runner);
   ~VideoRendererSinkImpl() override;
 
-  void SetVideoFrameProviderClient(VideoRendererSinkClient* client);
+  void SetVideoRendererSinkClient(VideoRendererSinkClient* client);
 
   // VideoRendererSink implementation. These methods must be called from the
   // same thread (typically the media thread).
