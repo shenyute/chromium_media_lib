@@ -4,6 +4,13 @@ About
 This is the C++ library which wrapper chromium media module to create media player.
 Now we use chromium version 59.0.3071.117.
 
+Features
+========
+
+ * Support playing local file
+ * Normal media player API (ex: play, pause, seek, set volume, set play rate)
+ * Not coupling with chromium multi-process architecture
+
 How to build
 ============
 
@@ -38,3 +45,9 @@ How to build
 5. Now you can execute basic sample as following. ::
 
    $ ./out/Default/media_example <media file path>
+
+
+TODO
+====
+
+ * Support network media file (with network flow control)
