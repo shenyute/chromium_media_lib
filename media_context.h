@@ -1,3 +1,6 @@
+// Copyright (c) 2017 YuTeh Shen
+//
+
 #include <memory>
 
 #include "base/memory/ref_counted.h"

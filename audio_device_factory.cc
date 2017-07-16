@@ -1,3 +1,7 @@
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+//
+
 #include "chromium_media_lib/audio_device_factory.h"
 
 #include "base/memory/ptr_util.h"

@@ -1,3 +1,5 @@
+// Copyright (c) 2017 YuTeh Shen
+//
 #include "chromium_media_lib/media_context.h"
 
 #include "base/lazy_instance.h"

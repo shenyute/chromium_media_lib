@@ -1,3 +1,5 @@
+// Copyright (c) 2017 YuTeh Shen
+//
 #include "chromium_media_lib/file_data_source.h"
 
 #include "base/bind.h"

@@ -1,3 +1,5 @@
+// Copyright (c) 2017 YuTeh Shen
+//
 #ifndef CHROMIUM_MEDIA_LIB_FILE_DATA_SOURCE_H_
 #define CHROMIUM_MEDIA_LIB_FILE_DATA_SOURCE_H_
 

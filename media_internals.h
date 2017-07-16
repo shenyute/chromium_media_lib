@@ -1,3 +1,7 @@
+// Copyright (c) 2012 The Chromium Authors. All rights reserved.
+// Use of this source code is governed by a BSD-style license that can be
+//
+
 #ifndef CHROMIUM_MEDIA_LIB_MEDIA_INTERNALS_H_
 #define CHROMIUM_MEDIA_LIB_MEDIA_INTERNALS_H_
 

@@ -1,3 +1,6 @@
+// Copyright (c) 2017 YuTeh Shen
+//
+
 #include "chromium_media_lib/mediaplayer_params.h"
 
 namespace media {
