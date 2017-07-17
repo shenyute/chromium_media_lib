@@ -47,6 +47,13 @@ How to build
    $ ./out/Default/media_example <media file path>
 
 
+Reference
+=========
+
+ * Architecture_.
+
+ .. _Architecture: https://docs.google.com/document/d/1uqU2GVcr8a60sUkP3KKB_XyShqZhJvuEHOiQDSBz7hE/edit?usp=sharing
+
 TODO
 ====
 
