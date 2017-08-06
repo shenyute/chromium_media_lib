@@ -32,6 +32,8 @@ static_library("chromium_media") {
     "audio_output_delegate_impl.h",
     "audio_sync_reader.cc",
     "audio_sync_reader.h",
+    "read_operation.cc",
+    "read_operation.h",
     "resource_data_source.cc",
     "resource_data_source.h",
     "video_renderer_sink_impl.cc",

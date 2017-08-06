@@ -9,51 +9,6 @@
 
 namespace media {
 
-class FileDataSource::ReadOperation {
- public:
-  ReadOperation(int64_t position,
-                int size,
-                uint8_t* data,
-                const DataSource::ReadCB& callback);
-  ~ReadOperation();
-
-  // Runs |callback_| with the given |result|, deleting the operation
-  // afterwards.
-  static void Run(std::unique_ptr<ReadOperation> read_op, int result);
-
-  int64_t position() { return position_; }
-  int size() { return size_; }
-  uint8_t* data() { return data_; }
-
- private:
-  const int64_t position_;
-  const int size_;
-  uint8_t* data_;
-  DataSource::ReadCB callback_;
-
-  DISALLOW_IMPLICIT_CONSTRUCTORS(ReadOperation);
-};
-
-FileDataSource::ReadOperation::ReadOperation(
-    int64_t position,
-    int size,
-    uint8_t* data,
-    const DataSource::ReadCB& callback)
-    : position_(position), size_(size), data_(data), callback_(callback) {
-  DCHECK(!callback_.is_null());
-}
-
-FileDataSource::ReadOperation::~ReadOperation() {
-  DCHECK(callback_.is_null());
-}
-
-// static
-void FileDataSource::ReadOperation::Run(
-    std::unique_ptr<ReadOperation> read_op,
-    int result) {
-  base::ResetAndReturn(&read_op->callback_).Run(result);
-}
-
 FileDataSource::FileDataSource(const base::FilePath& path,
     const scoped_refptr<base::SingleThreadTaskRunner>& task_runner)
     : render_task_runner_(task_runner),

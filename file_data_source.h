@@ -12,6 +12,7 @@
 #include "base/memory/weak_ptr.h"
 #include "base/single_thread_task_runner.h"
 #include "base/synchronization/lock.h"
+#include "chromium_media_lib/read_operation.h"
 #include "media/base/data_source.h"
 
 namespace media {
@@ -50,7 +51,6 @@ class FileDataSource : public DataSource {
   bool stop_signal_received_;
   InitializeCB init_cb_;
 
-  class ReadOperation;
   std::unique_ptr<ReadOperation> read_op_;
 
   base::WeakPtr<FileDataSource> weak_ptr_;
