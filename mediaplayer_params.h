@@ -19,6 +19,7 @@ class MediaPlayerParams {
   MediaPlayerParams(
       scoped_refptr<base::SingleThreadTaskRunner> main_task_runner,
       scoped_refptr<base::SingleThreadTaskRunner> media_task_runner,
+      scoped_refptr<base::SingleThreadTaskRunner> io_task_runner,
       scoped_refptr<base::TaskRunner> worker_task_runner,
       scoped_refptr<MediaLog> media_log);
   scoped_refptr<MediaLog> take_media_log() { return media_log_; }
@@ -29,6 +30,9 @@ class MediaPlayerParams {
   }
   scoped_refptr<base::SingleThreadTaskRunner> media_task_runner() {
     return media_task_runner_;
+  }
+  scoped_refptr<base::SingleThreadTaskRunner> io_task_runner() {
+    return io_task_runner_;
   }
   scoped_refptr<base::TaskRunner> worker_task_runner() {
     return worker_task_runner_;
@@ -45,6 +49,7 @@ class MediaPlayerParams {
  private:
   scoped_refptr<base::SingleThreadTaskRunner> main_task_runner_;
   scoped_refptr<base::SingleThreadTaskRunner> media_task_runner_;
+  scoped_refptr<base::SingleThreadTaskRunner> io_task_runner_;
   scoped_refptr<base::TaskRunner> worker_task_runner_;
   scoped_refptr<MediaLog> media_log_;
   VideoRendererSinkClient* video_renderer_sink_client_;

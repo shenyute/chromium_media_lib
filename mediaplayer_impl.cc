@@ -25,6 +25,7 @@ const double kMaxRate = 16.0;
 MediaPlayerImpl::MediaPlayerImpl(MediaPlayerParams& params)
     : main_task_runner_(params.main_task_runner()),
       media_task_runner_(params.media_task_runner()),
+      io_task_runner_(params.io_task_runner()),
       worker_task_runner_(params.worker_task_runner()),
       media_log_(params.take_media_log()),
       owner_id_(1),
@@ -57,6 +58,10 @@ MediaPlayerImpl::~MediaPlayerImpl() {
 }
 
 void MediaPlayerImpl::Load(GURL url) {
+  resource_source_.reset(new ResourceDataSource(
+        url, main_task_runner_, io_task_runner_));
+  resource_source_->Initialize(
+      base::Bind(&MediaPlayerImpl::DataSourceInitialized, AsWeakPtr()));
 }
 
 void MediaPlayerImpl::Load(const base::FilePath& path) {
@@ -198,7 +203,7 @@ void MediaPlayerImpl::DataSourceInitialized(bool success) {
 
 void MediaPlayerImpl::StartPipeline() {
   DCHECK(main_task_runner_->BelongsToCurrentThread());
-  DCHECK(data_source_);
+  DCHECK(data_source_ || resource_source_);
 
   Demuxer::EncryptedMediaInitDataCB encrypted_media_init_data_cb =
       BindToCurrentLoop(base::Bind(
@@ -209,8 +214,10 @@ void MediaPlayerImpl::StartPipeline() {
     BindToCurrentLoop(base::Bind(
           &MediaPlayerImpl::OnFFmpegMediaTracksUpdated, AsWeakPtr()));
 
+  DataSource* source = data_source_ ? (DataSource*)data_source_.get()
+      : (DataSource*)resource_source_.get();
   demuxer_.reset(new FFmpegDemuxer(
-        media_task_runner_, data_source_.get(), encrypted_media_init_data_cb,
+        media_task_runner_, source, encrypted_media_init_data_cb,
         media_tracks_updated_cb, media_log_.get()));
   bool is_streaming = false;
   pipeline_controller_.Start(demuxer_.get(), this, is_streaming, true);

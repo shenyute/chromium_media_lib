@@ -36,6 +36,8 @@ static_library("chromium_media") {
     "read_operation.h",
     "resource_data_source.cc",
     "resource_data_source.h",
+    "resource_multibuffer.cc",
+    "resource_multibuffer.h",
     "video_renderer_sink_impl.cc",
     "video_renderer_sink_impl.h",
   ]

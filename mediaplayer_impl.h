@@ -14,6 +14,7 @@
 #include "chromium_media_lib/audiosourceprovider_impl.h"
 #include "chromium_media_lib/file_data_source.h"
 #include "chromium_media_lib/mediaplayer_params.h"
+#include "chromium_media_lib/resource_data_source.h"
 #include "chromium_media_lib/video_renderer_sink_impl.h"
 #include "media/base/media_observer.h"
 #include "media/base/media_tracks.h"
@@ -81,6 +82,7 @@ class MEDIA_EXPORT MediaPlayerImpl
  private:
   const scoped_refptr<base::SingleThreadTaskRunner> main_task_runner_;
   scoped_refptr<base::SingleThreadTaskRunner> media_task_runner_;
+  scoped_refptr<base::SingleThreadTaskRunner> io_task_runner_;
   scoped_refptr<base::TaskRunner> worker_task_runner_;
   scoped_refptr<MediaLog> media_log_;
   scoped_refptr<AudioSourceProviderImpl> audio_source_provider_;
@@ -105,6 +107,7 @@ class MEDIA_EXPORT MediaPlayerImpl
 
   std::unique_ptr<RendererFactory> renderer_factory_;
   std::unique_ptr<FileDataSource> data_source_;
+  std::unique_ptr<ResourceDataSource> resource_source_;
   std::unique_ptr<Demuxer> demuxer_;
 
   DISALLOW_COPY_AND_ASSIGN(MediaPlayerImpl);
