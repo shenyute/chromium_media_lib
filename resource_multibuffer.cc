@@ -68,13 +68,15 @@ static base::LazyInstance<RequestContextInitializer>::Leaky g_request_context_in
 
 ResourceMultiBuffer::ResourceMultiBuffer(ResourceMultiBufferClient* client,
     const GURL& url,
+    int32_t block_size_shift,
     const scoped_refptr<base::SingleThreadTaskRunner>& io_task_runner)
     : url_(url),
       io_task_runner_(io_task_runner),
       write_start_pos_(0),
       write_offset_(0),
       total_bytes_(-1),
-      client_(client) {
+      client_(client),
+      block_size_shift_(block_size_shift) {
 }
 
 ResourceMultiBuffer::~ResourceMultiBuffer() {
@@ -90,6 +92,10 @@ void ResourceMultiBuffer::Start() {
   }
   base::AutoLock auto_lock(lock_);
   CreateFetcherFrom(0);
+}
+
+MultiBufferBlockId ResourceMultiBuffer::ToBlockId(int position) {
+  return position >> block_size_shift_;
 }
 
 int64_t ResourceMultiBuffer::GetSize() {
@@ -110,33 +116,30 @@ void ResourceMultiBuffer::Seek(int position) {
 
 int ResourceMultiBuffer::Fill(int position, int size, void* data) {
   base::AutoLock auto_lock(lock_);
-  auto i = cache_.upper_bound(position);
-  DCHECK(i == cache_.end() || i->first > position);
+  MultiBufferBlockId id = ToBlockId(position);
+  const int buffer_size = 1 << block_size_shift_;
+  auto i = cache_.upper_bound(id);
+  DCHECK(i == cache_.end() || (i->first << block_size_shift_) > position);
   if (i == cache_.begin()) {
     return net::ERR_IO_PENDING;
   }
   --i;
   int write_bytes = 0;
-  DCHECK_LE(i->first, position);
-  while (i != cache_.end() &&
-      i->first <= position &&
-      i->first + i->second->data_size() >= position &&
-      size > 0) {
+  DCHECK_LE(i->first << block_size_shift_, position);
+  while (i != cache_.end() && size > 0
+      && ((i->first << block_size_shift_) + i->second->data_size() >= position)) {
     // copy buffer
-    const int start_position = position - i->first;
-    const int remain_size = i->second->data_size() - start_position;
+    const int start_position = position - (i->first << block_size_shift_);
+    const int remain_size = std::min(i->second->data_size() - start_position, size);
     DCHECK(remain_size >= 0);
     uint8_t *p = (uint8_t*)data + write_bytes;
-    if (size > remain_size) {
-      memcpy(p, i->second->data() + start_position, remain_size);
-      size -= remain_size;
-      position += remain_size;
-      write_bytes += remain_size;
-    } else {
-      memcpy(p, i->second->data() + start_position, size);
-      write_bytes += size;
+    memcpy(p, i->second->data() + start_position, remain_size);
+    size -= remain_size;
+    position += remain_size;
+    write_bytes += remain_size;
+    // the buffer is not full, so need to wait until ready.
+    if (i->second->data_size() != buffer_size)
       break;
-    }
     ++i;
   }
 
@@ -159,6 +162,7 @@ int ResourceMultiBuffer::OnWrite(net::IOBuffer* buffer,
 
   // int written = net::ERR_ABORTED;
   // http 2XX
+  int written_bytes = num_bytes;
   {
     base::AutoLock auto_lock(lock_);
     bool partial_response = fetcher_->GetResponseCode() == kHttpPartialContent;
@@ -174,16 +178,32 @@ int ResourceMultiBuffer::OnWrite(net::IOBuffer* buffer,
       } else {
         total_bytes_ = fetcher_->GetReceivedResponseContentLength();
       }
-      scoped_refptr<DataBuffer> entry = DataBuffer::CopyFrom((uint8_t*)buffer->data(), num_bytes);
-      int position = write_start_pos_ + write_offset_;
-      LOG(INFO) << "ResourceMultiBuffer::OnWrite add position=" << position
-          << " size=" << num_bytes << " total=" << total_bytes_;
-      cache_[position] = entry;
-      write_offset_ += num_bytes;
+      MultiBufferBlockId id = ToBlockId(write_start_pos_ + write_offset_);
+      const int buffer_size = 1 << block_size_shift_;
+      char* read_data = buffer->data();
+      while (num_bytes > 0) {
+        scoped_refptr<DataBuffer> entry;
+        auto found = cache_.find(id);
+        if (found == cache_.end()) {
+          entry = new DataBuffer(buffer_size);
+          cache_[id] = entry;
+        } else {
+          entry = found->second;
+        }
+        int write_start = entry->data_size();
+        int remain_size = std::min(buffer_size - write_start, num_bytes);
+        memcpy(entry->writable_data() + write_start, read_data, remain_size);
+        entry->set_data_size(write_start + remain_size);
+        LOG(INFO) << "id=" << id << " data_size=" << (write_start + remain_size);
+        read_data += remain_size;
+        write_offset_ += remain_size;
+        num_bytes -= remain_size;
+        id++;
+      }
     }
   }
   //client_->OnUpdateState();
-  return num_bytes;
+  return written_bytes;
 }
 
 int ResourceMultiBuffer::OnFinish(int net_error, const net::CompletionCallback& callback) {

@@ -5,6 +5,8 @@
 
 namespace media {
 
+const int kBlockSizeShift = 15;  // 1<<15 == 32kb
+
 ResourceDataSource::ResourceDataSource(const GURL& url,
     const scoped_refptr<base::SingleThreadTaskRunner>& task_runner,
     const scoped_refptr<base::SingleThreadTaskRunner>& io_task_runner)
@@ -13,7 +15,7 @@ ResourceDataSource::ResourceDataSource(const GURL& url,
       url_(url),
       stop_signal_received_(false),
       total_bytes_(0),
-      multibuffer_(this, url, io_task_runner_),
+      multibuffer_(this, url, kBlockSizeShift, io_task_runner_),
       weak_factory_(this) {
   weak_ptr_ = weak_factory_.GetWeakPtr();
 }

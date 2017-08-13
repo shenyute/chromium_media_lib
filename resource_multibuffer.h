@@ -16,6 +16,8 @@
 
 namespace media {
 
+typedef int32_t MultiBufferBlockId;
+
 class ResourceMultiBufferClient {
  public:
   virtual void DidInitialize() = 0;
@@ -28,8 +30,11 @@ class ResourceMultiBuffer :
  public:
   ResourceMultiBuffer(ResourceMultiBufferClient* client,
       const GURL& url,
+      int32_t block_size_shift,
       const scoped_refptr<base::SingleThreadTaskRunner>& io_task_runner);
   ~ResourceMultiBuffer() override;
+
+  MultiBufferBlockId ToBlockId(int position);
 
   int64_t GetSize();
   void Start();
@@ -57,10 +62,11 @@ class ResourceMultiBuffer :
   int write_start_pos_;
   int write_offset_;
   int64_t total_bytes_;
-  std::map<int, scoped_refptr<DataBuffer> > cache_;
+  std::map<MultiBufferBlockId, scoped_refptr<DataBuffer> > cache_;
   ResourceMultiBufferClient* client_;
   std::unique_ptr<net::URLFetcher> fetcher_;
   base::Lock lock_;
+  int32_t block_size_shift_;
 };
 
 }
