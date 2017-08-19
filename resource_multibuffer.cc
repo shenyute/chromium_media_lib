@@ -100,11 +100,32 @@ int64_t ResourceMultiBuffer::GetSize() {
   return total_bytes_;
 }
 
+bool ResourceMultiBuffer::CheckCacheMiss(int position) {
+  MultiBufferBlockId id = ToBlockId(position);
+  auto i = cache_.upper_bound(id);
+  bool write_behind = write_start_pos_ + write_offset_ > position;
+  // the writer write entry is being purged
+  if (!write_behind)
+    return false;
+  if (i == cache_.begin())
+    return true;
+  --i;
+  bool no_cache_entry =
+      !((i->first << block_size_shift_) + i->second->data_size() > position);
+  return no_cache_entry && write_behind;
+}
+
 void ResourceMultiBuffer::Seek(int position) {
   base::AutoLock auto_lock(lock_);
+  int current_write_pos = write_start_pos_ + write_offset_;
+  MultiBufferBlockId id = ToBlockId(position);
   if (position < write_start_pos_ ||
-      position - kMaxWaitForReaderOffset > write_start_pos_ + write_offset_) {
-    CreateFetcherFrom(position);
+      position - kMaxWaitForReaderOffset > current_write_pos ||
+      CheckCacheMiss(position)) {
+    id = std::max(id - 1, 0);
+    write_start_pos_ = id << block_size_shift_;
+    write_offset_ = 0;
+    CreateFetcherFrom(write_start_pos_);
   }
   // otherwise it is ok to acces data or wait data received
 }
