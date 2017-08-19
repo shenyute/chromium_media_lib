@@ -92,6 +92,7 @@ void ResourceDataSource::ReadTask() {
                                      read_op_->data());
   LOG(INFO) << "ResourceDataSource::ReadTask read_op=" << read_op_.get()
             << " position=" << read_op_->position()
+            << " id=" << multibuffer_.ToBlockId(read_op_->position())
             << " size=" << read_op_->size() << " bytes_read=" << bytes_read;
   if (bytes_read > 0) {
     ReadOperation::Run(std::move(read_op_), bytes_read);
@@ -107,7 +108,8 @@ void ResourceDataSource::ReadTask() {
 }
 
 void ResourceDataSource::DidInitialize() {
-  DCHECK(!init_cb_.is_null());
+  if (init_cb_.is_null())
+    return;
   DCHECK(io_task_runner_->BelongsToCurrentThread());
   base::AutoLock auto_lock(lock_);
   render_task_runner_->PostTask(

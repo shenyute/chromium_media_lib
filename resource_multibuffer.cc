@@ -11,8 +11,14 @@
 
 namespace media {
 
-static int kMaxWaitForReaderOffset = 512 * 1024;  // 512 kb
 static const int kHttpPartialContent = 206;
+
+// This is the size of the look-ahead region.
+static const int kMaxLookAheadIndex = 5;
+// This is the size of the look-behind region.
+static const int kMaxLookBehindIndex = 50;
+static const int kMaxWaitForReaderOffset = 512 * 1024;  // 512 kb
+static const int kMaxCacheSize = 1000;
 
 struct RequestContextInitializer {
   RequestContextInitializer() {
@@ -80,12 +86,9 @@ ResourceMultiBuffer::~ResourceMultiBuffer() {}
 
 void ResourceMultiBuffer::Start() {
   DCHECK(!fetcher_);
-  if (!io_task_runner_->BelongsToCurrentThread()) {
-    io_task_runner_->PostTask(FROM_HERE, base::Bind(&ResourceMultiBuffer::Start,
-                                                    base::Unretained(this)));
-    return;
-  }
   base::AutoLock auto_lock(lock_);
+  write_start_pos_ = 0;
+  write_offset_ = 0;
   CreateFetcherFrom(0);
 }
 
@@ -119,6 +122,7 @@ void ResourceMultiBuffer::Seek(int position) {
   base::AutoLock auto_lock(lock_);
   int current_write_pos = write_start_pos_ + write_offset_;
   MultiBufferBlockId id = ToBlockId(position);
+  AdjustPinnedRange(id);
   if (position < write_start_pos_ ||
       position - kMaxWaitForReaderOffset > current_write_pos ||
       CheckCacheMiss(position)) {
@@ -208,8 +212,11 @@ int ResourceMultiBuffer::OnWrite(net::IOBuffer* buffer,
         if (found == cache_.end()) {
           entry = new DataBuffer(buffer_size);
           cache_[id] = entry;
+          lru_.Insert(id);
+          PurgeIfNecessary();
         } else {
           entry = found->second;
+          lru_.Use(id);
         }
         int write_start = ((write_start_pos_ + write_offset_) &
                            ((1 << block_size_shift_) - 1));
@@ -236,7 +243,34 @@ int ResourceMultiBuffer::OnFinish(int net_error,
   return 0;
 }
 
+void ResourceMultiBuffer::AdjustPinnedRange(MultiBufferBlockId id) {
+  pinned_range_ = std::make_pair(std::max(id - kMaxLookAheadIndex, 0),
+                                 id + kMaxLookBehindIndex);
+  LOG(INFO) << "!!!! id=" << id << " range=" << pinned_range_.first << "-"
+            << pinned_range_.second;
+}
+
+void ResourceMultiBuffer::PurgeIfNecessary() {
+  while (lru_.Size() > kMaxCacheSize) {
+    MultiBufferBlockId id = lru_.Pop();
+    if (id >= pinned_range_.first && id <= pinned_range_.second)
+      lru_.Insert(id);
+    else {
+      auto it = cache_.find(id);
+      DCHECK(it != cache_.end());
+      LOG(INFO) << " erase id=" << id;
+      cache_.erase(it);
+    }
+  }
+}
+
 void ResourceMultiBuffer::CreateFetcherFrom(int position) {
+  if (!io_task_runner_->BelongsToCurrentThread()) {
+    io_task_runner_->PostTask(
+        FROM_HERE, base::Bind(&ResourceMultiBuffer::CreateFetcherFrom,
+                              base::Unretained(this), position));
+    return;
+  }
   fetcher_ = net::URLFetcher::Create(url_, net::URLFetcher::GET, this);
   fetcher_->SetRequestContext(new net::TrivialURLRequestContextGetter(
       g_request_context_init.Pointer()->request_context(), io_task_runner_));
@@ -248,8 +282,6 @@ void ResourceMultiBuffer::CreateFetcherFrom(int position) {
       "Chrome/59.0.3071.115 Safari/537.36\r\n");
   fetcher_->SaveResponseWithWriter(std::move(response_writer));
   std::stringstream range_header;
-  write_start_pos_ = position;
-  write_offset_ = 0;
   range_header << "Range: "
                << "bytes=" << position << "-";
   LOG(INFO) << "CreateFetcherFrom range=" << range_header.str();

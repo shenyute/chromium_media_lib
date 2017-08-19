@@ -5,6 +5,7 @@
 
 #include "base/single_thread_task_runner.h"
 #include "base/synchronization/lock.h"
+#include "chromium_media_lib/lru.h"
 #include "media/base/data_buffer.h"
 #include "net/base/completion_callback.h"
 #include "net/base/io_buffer.h"
@@ -13,6 +14,7 @@
 
 #include <map>
 #include <memory>
+#include <utility>
 
 namespace media {
 
@@ -54,7 +56,10 @@ class ResourceMultiBuffer : public net::URLFetcherDelegate {
   int OnFinish(int net_error, const net::CompletionCallback& callback);
 
  private:
+  void AdjustPinnedRange(MultiBufferBlockId id);
   void CreateFetcherFrom(int position);
+  void PurgeIfNecessary();
+  bool CheckCacheMiss(int position);
 
  private:
   GURL url_;
@@ -62,11 +67,16 @@ class ResourceMultiBuffer : public net::URLFetcherDelegate {
   int write_start_pos_;
   int write_offset_;
   int64_t total_bytes_;
-  std::map<MultiBufferBlockId, scoped_refptr<DataBuffer>> cache_;
   ResourceMultiBufferClient* client_;
   std::unique_ptr<net::URLFetcher> fetcher_;
   base::Lock lock_;
   int32_t block_size_shift_;
+
+  // cache relative
+  std::map<MultiBufferBlockId, scoped_refptr<DataBuffer>> cache_;
+  LRU<MultiBufferBlockId> lru_;
+  // region which should not be pruned by LRU
+  std::pair<MultiBufferBlockId, MultiBufferBlockId> pinned_range_;
 };
 }
 
