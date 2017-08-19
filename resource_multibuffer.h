@@ -25,10 +25,10 @@ class ResourceMultiBufferClient {
 };
 
 // Use URLFetcher to buffer network resource.
-class ResourceMultiBuffer :
-    public net::URLFetcherDelegate {
+class ResourceMultiBuffer : public net::URLFetcherDelegate {
  public:
-  ResourceMultiBuffer(ResourceMultiBufferClient* client,
+  ResourceMultiBuffer(
+      ResourceMultiBufferClient* client,
       const GURL& url,
       int32_t block_size_shift,
       const scoped_refptr<base::SingleThreadTaskRunner>& io_task_runner);
@@ -39,8 +39,8 @@ class ResourceMultiBuffer :
   int64_t GetSize();
   void Start();
   void Seek(int position);
-  // Try to fill data into |data|, and return write bytes or net::ERR_IO_PENDINGO
-  // if no data available now.
+  // Try to fill data into |data|, and return write bytes or
+  // net::ERR_IO_PENDINGO if no data available now.
   int Fill(int position, int size, void* data);
 
   // net::URLFetcherDelegate
@@ -49,8 +49,8 @@ class ResourceMultiBuffer :
   // Invoked by URLFetcherResponseWriter
   void DidInitialize();
   int OnWrite(net::IOBuffer* buffer,
-            int num_bytes,
-            const net::CompletionCallback& callback);
+              int num_bytes,
+              const net::CompletionCallback& callback);
   int OnFinish(int net_error, const net::CompletionCallback& callback);
 
  private:
@@ -62,13 +62,12 @@ class ResourceMultiBuffer :
   int write_start_pos_;
   int write_offset_;
   int64_t total_bytes_;
-  std::map<MultiBufferBlockId, scoped_refptr<DataBuffer> > cache_;
+  std::map<MultiBufferBlockId, scoped_refptr<DataBuffer>> cache_;
   ResourceMultiBufferClient* client_;
   std::unique_ptr<net::URLFetcher> fetcher_;
   base::Lock lock_;
   int32_t block_size_shift_;
 };
-
 }
 
-#endif // CHROMIUM_MEDIA_LIB_RESOURCE_MULTIBUFFER_H_
+#endif  // CHROMIUM_MEDIA_LIB_RESOURCE_MULTIBUFFER_H_

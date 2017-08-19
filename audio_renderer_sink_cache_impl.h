@@ -17,8 +17,7 @@
 namespace media {
 
 // AudioRendererSinkCache implementation.
-class MEDIA_EXPORT AudioRendererSinkCacheImpl
-    : public AudioRendererSinkCache {
+class MEDIA_EXPORT AudioRendererSinkCacheImpl : public AudioRendererSinkCache {
  public:
   // Callback to be used for AudioRendererSink creation
   using CreateSinkCallback =

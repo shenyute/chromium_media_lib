@@ -11,8 +11,8 @@
 #include "base/macros.h"
 #include "base/memory/weak_ptr.h"
 #include "base/single_thread_task_runner.h"
-#include "media/base/media_export.h"
 #include "media/audio/audio_output_delegate.h"
+#include "media/base/media_export.h"
 
 namespace media {
 
@@ -22,8 +22,7 @@ class AudioOutputController;
 class AudioParameters;
 class AudioSyncReader;
 
-class MEDIA_EXPORT AudioOutputDelegateImpl
-    : public AudioOutputDelegate {
+class MEDIA_EXPORT AudioOutputDelegateImpl : public AudioOutputDelegate {
  public:
   AudioOutputDelegateImpl(EventHandler* handler,
                           AudioManager* audio_manager,
@@ -63,6 +62,6 @@ class MEDIA_EXPORT AudioOutputDelegateImpl
   DISALLOW_COPY_AND_ASSIGN(AudioOutputDelegateImpl);
 };
 
-} // namespace media
+}  // namespace media
 
-#endif // CHROMIUM_MEDIA_LIB_AUDIO_OUTPUT_DELEGATE_IMPL_H_
+#endif  // CHROMIUM_MEDIA_LIB_AUDIO_OUTPUT_DELEGATE_IMPL_H_

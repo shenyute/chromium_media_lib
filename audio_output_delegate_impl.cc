@@ -32,29 +32,29 @@ class AudioOutputDelegateImpl::ControllerEventHandler
 AudioOutputDelegateImpl::ControllerEventHandler::ControllerEventHandler(
     base::WeakPtr<AudioOutputDelegateImpl> delegate,
     base::SingleThreadTaskRunner* io_task_runner)
-    : delegate_(std::move(delegate)),
-      io_task_runner_(io_task_runner) {}
+    : delegate_(std::move(delegate)), io_task_runner_(io_task_runner) {}
 
 void AudioOutputDelegateImpl::ControllerEventHandler::OnControllerCreated() {
-  io_task_runner_->PostTask(FROM_HERE,
+  io_task_runner_->PostTask(
+      FROM_HERE,
       base::Bind(&AudioOutputDelegateImpl::SendCreatedNotification, delegate_));
 }
 
 void AudioOutputDelegateImpl::ControllerEventHandler::OnControllerPlaying() {
-  io_task_runner_->PostTask(FROM_HERE,
-      base::Bind(&AudioOutputDelegateImpl::UpdatePlayingState, delegate_,
-                 true));
+  io_task_runner_->PostTask(
+      FROM_HERE, base::Bind(&AudioOutputDelegateImpl::UpdatePlayingState,
+                            delegate_, true));
 }
 
 void AudioOutputDelegateImpl::ControllerEventHandler::OnControllerPaused() {
-  io_task_runner_->PostTask(FROM_HERE,
-      base::Bind(&AudioOutputDelegateImpl::UpdatePlayingState, delegate_,
-                 false));
+  io_task_runner_->PostTask(
+      FROM_HERE, base::Bind(&AudioOutputDelegateImpl::UpdatePlayingState,
+                            delegate_, false));
 }
 
 void AudioOutputDelegateImpl::ControllerEventHandler::OnControllerError() {
-  io_task_runner_->PostTask(FROM_HERE,
-      base::Bind(&AudioOutputDelegateImpl::OnError, delegate_));
+  io_task_runner_->PostTask(
+      FROM_HERE, base::Bind(&AudioOutputDelegateImpl::OnError, delegate_));
 }
 
 AudioOutputDelegateImpl::AudioOutputDelegateImpl(
@@ -79,8 +79,8 @@ AudioOutputDelegateImpl::AudioOutputDelegateImpl(
   // Since the event handler never directly calls functions on |this| but rather
   // posts them to the IO thread, passing a pointer from the constructor is
   // safe.
-  controller_event_handler_ =
-      base::MakeUnique<ControllerEventHandler>(weak_factory_.GetWeakPtr(), io_task_runner_);
+  controller_event_handler_ = base::MakeUnique<ControllerEventHandler>(
+      weak_factory_.GetWeakPtr(), io_task_runner_);
   audio_log_->OnCreated(stream_id, params, output_device_id);
   controller_ = AudioOutputController::Create(
       audio_manager, controller_event_handler_.get(), params, output_device_id,
@@ -99,17 +99,16 @@ AudioOutputDelegateImpl::~AudioOutputDelegateImpl() {
   // we can delete |controller_event_handler_| and |reader_|. By giving the
   // closure ownership of these, we keep them alive until |controller_| is
   // closed.
-  controller_->Close(base::Bind(
-      [](std::unique_ptr<ControllerEventHandler> event_handler,
-         std::unique_ptr<AudioSyncReader> reader,
-         scoped_refptr<AudioOutputController> controller) {
-      },
-      base::Passed(&controller_event_handler_),
-      base::Passed(&reader_), controller_));
+  controller_->Close(
+      base::Bind([](std::unique_ptr<ControllerEventHandler> event_handler,
+                    std::unique_ptr<AudioSyncReader> reader,
+                    scoped_refptr<AudioOutputController> controller) {},
+                 base::Passed(&controller_event_handler_),
+                 base::Passed(&reader_), controller_));
 }
 
-scoped_refptr<AudioOutputController>
-AudioOutputDelegateImpl::GetController() const {
+scoped_refptr<AudioOutputController> AudioOutputDelegateImpl::GetController()
+    const {
   return controller_;
 }
 
@@ -158,4 +157,4 @@ void AudioOutputDelegateImpl::OnError() {
   subscriber_->OnStreamError(stream_id_);
 }
 
-} // namespace media
+}  // namespace media

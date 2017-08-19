@@ -19,41 +19,41 @@ void AudioRendererHost::SetClient(AudioRendererHostClient* client) {
 }
 
 AudioRendererHost::AudioRendererHost(AudioManager* audio_manager,
-                    AudioSystem* audio_system,
-                    AudioRendererHostClient* client)
+                                     AudioSystem* audio_system,
+                                     AudioRendererHostClient* client)
     : audio_manager_(audio_manager),
       audio_system_(audio_system),
       client_(client) {
   DCHECK(audio_manager_);
 }
 
-AudioRendererHost::~AudioRendererHost() {
-}
+AudioRendererHost::~AudioRendererHost() {}
 
-void AudioRendererHost::RequestDeviceAuthorization(int stream_id,
-                                int render_frame_id,
-                                int session_id,
-                                const std::string& device_id,
-                                const url::Origin& security_origin,
-                                AuthorizationCompletedCallback cb) {
+void AudioRendererHost::RequestDeviceAuthorization(
+    int stream_id,
+    int render_frame_id,
+    int session_id,
+    const std::string& device_id,
+    const url::Origin& security_origin,
+    AuthorizationCompletedCallback cb) {
   if (AudioDeviceDescription::IsDefaultDevice(device_id)) {
     // Default device doesn't need authorization.
-    authorizations_.insert(
-        std::make_pair(stream_id, std::make_pair(true,
-          AudioDeviceDescription::kDefaultDeviceId)));
+    authorizations_.insert(std::make_pair(
+        stream_id,
+        std::make_pair(true, AudioDeviceDescription::kDefaultDeviceId)));
     audio_system_->GetOutputStreamParameters(
         AudioDeviceDescription::kDefaultDeviceId,
         base::Bind(&AudioRendererHost::DeviceParametersReceived,
-          base::Unretained(this), stream_id, std::move(cb),
-          AudioDeviceDescription::kDefaultDeviceId));
+                   base::Unretained(this), stream_id, std::move(cb),
+                   AudioDeviceDescription::kDefaultDeviceId));
     return;
   }
   assert(false);
 }
 
 void AudioRendererHost::CreateStream(int stream_id,
-      int render_frame_id,
-      const AudioParameters& params) {
+                                     int render_frame_id,
+                                     const AudioParameters& params) {
   const auto& auth_data = authorizations_.find(stream_id);
   std::string device_unique_id;
   if (auth_data != authorizations_.end()) {
@@ -65,13 +65,13 @@ void AudioRendererHost::CreateStream(int stream_id,
     authorizations_.erase(auth_data);
   }
   MediaInternals* const media_internals = MediaInternals::GetInstance();
-  std::unique_ptr<AudioLog> audio_log = media_internals->CreateAudioLog(
-      AudioLogFactory::AUDIO_OUTPUT_CONTROLLER);
+  std::unique_ptr<AudioLog> audio_log =
+      media_internals->CreateAudioLog(AudioLogFactory::AUDIO_OUTPUT_CONTROLLER);
   delegates_.push_back(
       base::WrapUnique<AudioOutputDelegate>(new AudioOutputDelegateImpl(
-          this, audio_manager_, std::move(audio_log),
-          stream_id, render_frame_id,
-          params, device_unique_id, MediaContext::Get()->io_task_runner())));
+          this, audio_manager_, std::move(audio_log), stream_id,
+          render_frame_id, params, device_unique_id,
+          MediaContext::Get()->io_task_runner())));
 }
 
 void AudioRendererHost::PlayStream(int stream_id) {
@@ -85,16 +85,16 @@ void AudioRendererHost::PlayStream(int stream_id) {
 }
 
 void AudioRendererHost::DeviceParametersReceived(
-  int stream_id,
-  AuthorizationCompletedCallback cb,
-  const std::string& raw_device_id,
-  const AudioParameters& output_params) const {
-DCHECK(!raw_device_id.empty());
+    int stream_id,
+    AuthorizationCompletedCallback cb,
+    const std::string& raw_device_id,
+    const AudioParameters& output_params) const {
+  DCHECK(!raw_device_id.empty());
 
-cb.Run(stream_id, OUTPUT_DEVICE_STATUS_OK,
-    output_params.IsValid() ? output_params
-    : AudioParameters::UnavailableDeviceParams(),
-    raw_device_id);
+  cb.Run(stream_id, OUTPUT_DEVICE_STATUS_OK,
+         output_params.IsValid() ? output_params
+                                 : AudioParameters::UnavailableDeviceParams(),
+         raw_device_id);
 }
 
 void AudioRendererHost::OnStreamCreated(
@@ -106,17 +106,16 @@ void AudioRendererHost::OnStreamCreated(
   base::ProcessHandle handle = base::GetCurrentProcessHandle();
   size_t shared_memory_size = shared_memory->requested_size();
   if (!(shared_memory->ShareToProcess(handle, &foreign_memory_handle) &&
-        foreign_socket->PrepareTransitDescriptor(handle,
-                                                 &socket_descriptor))) {
+        foreign_socket->PrepareTransitDescriptor(handle, &socket_descriptor))) {
     // Something went wrong in preparing the IPC handles.
     client_->OnStreamError(stream_id);
     return;
   }
-  // NOTE: It is important to release handle otherwise the socket_descriptor will be
-  // invalide after foreign_socket destroy
+  // NOTE: It is important to release handle otherwise the socket_descriptor
+  // will be invalide after foreign_socket destroy
   foreign_socket->Release();
-  client_->OnStreamCreated(stream_id, foreign_memory_handle,
-      socket_descriptor, base::checked_cast<uint32_t>(shared_memory_size));
+  client_->OnStreamCreated(stream_id, foreign_memory_handle, socket_descriptor,
+                           base::checked_cast<uint32_t>(shared_memory_size));
 }
 
 void AudioRendererHost::OnStreamError(int stream_id) {
@@ -152,4 +151,4 @@ media::AudioOutputDelegate* AudioRendererHost::LookupById(int stream_id) {
   return i != delegates_.end() ? i->get() : nullptr;
 }
 
-} // namespace media
+}  // namespace media

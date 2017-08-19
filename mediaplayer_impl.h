@@ -30,8 +30,8 @@ class MEDIA_EXPORT MediaPlayerImpl
       public MediaObserverClient,
       public base::SupportsWeakPtr<MediaPlayerImpl> {
  public:
-   MediaPlayerImpl(MediaPlayerParams& params);
-   ~MediaPlayerImpl() override;
+  MediaPlayerImpl(MediaPlayerParams& params);
+  ~MediaPlayerImpl() override;
 
   // Playback controls.
   void Load(GURL url);
@@ -113,6 +113,6 @@ class MEDIA_EXPORT MediaPlayerImpl
   DISALLOW_COPY_AND_ASSIGN(MediaPlayerImpl);
 };
 
-} // namespace media
+}  // namespace media
 
-#endif // CHROMIUM_MEDIA_LIB_MEDIAPLAYER_IMPL_H_
+#endif  // CHROMIUM_MEDIA_LIB_MEDIAPLAYER_IMPL_H_

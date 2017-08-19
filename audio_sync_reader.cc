@@ -41,8 +41,7 @@ AudioSyncReader::AudioSyncReader(
   output_bus_->Zero();
 }
 
-AudioSyncReader::~AudioSyncReader() {
-}
+AudioSyncReader::~AudioSyncReader() {}
 
 // static
 std::unique_ptr<AudioSyncReader> AudioSyncReader::Create(
@@ -86,8 +85,8 @@ void AudioSyncReader::RequestMoreData(base::TimeDelta delay,
   // Increase the number of skipped frames stored in shared memory.
   buffer->params.frames_skipped += prior_frames_skipped;
   buffer->params.delay = delay.InMicroseconds();
-  buffer->params.delay_timestamp
-      = (delay_timestamp - base::TimeTicks()).InMicroseconds();
+  buffer->params.delay_timestamp =
+      (delay_timestamp - base::TimeTicks()).InMicroseconds();
 
   // Zero out the entire output buffer to avoid stuttering/repeating-buffers
   // in the anomalous case if the renderer is unable to keep up with real-time.
@@ -177,4 +176,4 @@ bool AudioSyncReader::WaitUntilDataIsReady() {
   return true;
 }
 
-} // namespace media
+}  // namespace media

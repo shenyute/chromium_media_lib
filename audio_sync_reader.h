@@ -18,7 +18,6 @@
 #include "base/file_descriptor_posix.h"
 #endif
 
-
 namespace base {
 class SharedMemory;
 }
@@ -66,7 +65,6 @@ class AudioSyncReader : public AudioOutputController::SyncReader {
 
   DISALLOW_COPY_AND_ASSIGN(AudioSyncReader);
 };
-
 }
 
-#endif // CHROMIUM_MEDIA_LIB_AUDIO_SYNC_READER_H_
+#endif  // CHROMIUM_MEDIA_LIB_AUDIO_SYNC_READER_H_

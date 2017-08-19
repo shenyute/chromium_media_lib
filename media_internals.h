@@ -33,8 +33,7 @@ class MEDIA_EXPORT MediaInternals
   ~MediaInternals() override;
 
   // AudioLogFactory implementation.  Safe to call from any thread.
-  std::unique_ptr<AudioLog> CreateAudioLog(
-      AudioComponent component) override;
+  std::unique_ptr<AudioLog> CreateAudioLog(AudioComponent component) override;
 
  private:
   friend class AudioLogImpl;

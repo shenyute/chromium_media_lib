@@ -6,9 +6,9 @@
 #include <memory>
 
 #include "base/callback.h"
-#include "base/macros.h"
 #include "base/files/file_path.h"
 #include "base/files/memory_mapped_file.h"
+#include "base/macros.h"
 #include "base/memory/weak_ptr.h"
 #include "base/single_thread_task_runner.h"
 #include "base/synchronization/lock.h"
@@ -19,9 +19,10 @@ namespace media {
 
 class FileDataSource : public DataSource {
  public:
-   FileDataSource(const base::FilePath& path,
+  FileDataSource(
+      const base::FilePath& path,
       const scoped_refptr<base::SingleThreadTaskRunner>& task_runner);
-   ~FileDataSource() override;
+  ~FileDataSource() override;
 
   typedef base::Callback<void(bool)> InitializeCB;
   void Initialize(const InitializeCB& init_cb);
@@ -61,4 +62,4 @@ class FileDataSource : public DataSource {
 
 }  // namespace media
 
-#endif // CHROMIUM_MEDIA_LIB_FILE_DATA_SOURCE_H_
+#endif  // CHROMIUM_MEDIA_LIB_FILE_DATA_SOURCE_H_

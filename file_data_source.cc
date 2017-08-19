@@ -9,7 +9,8 @@
 
 namespace media {
 
-FileDataSource::FileDataSource(const base::FilePath& path,
+FileDataSource::FileDataSource(
+    const base::FilePath& path,
     const scoped_refptr<base::SingleThreadTaskRunner>& task_runner)
     : render_task_runner_(task_runner),
       path_(path),
@@ -19,15 +20,13 @@ FileDataSource::FileDataSource(const base::FilePath& path,
   weak_ptr_ = weak_factory_.GetWeakPtr();
 }
 
-FileDataSource::~FileDataSource() {
-}
-
+FileDataSource::~FileDataSource() {}
 
 void FileDataSource::Initialize(const InitializeCB& init_cb) {
   DCHECK(render_task_runner_->BelongsToCurrentThread());
   DCHECK(!init_cb.is_null());
-  bool success = mapped_file_.Initialize(base::File(path_,
-      base::File::FLAG_OPEN | base::File::FLAG_READ));
+  bool success = mapped_file_.Initialize(
+      base::File(path_, base::File::FLAG_OPEN | base::File::FLAG_READ));
   {
     base::AutoLock auto_lock(lock_);
     if (success)
@@ -49,9 +48,9 @@ void FileDataSource::Abort() {
 }
 
 void FileDataSource::Read(int64_t position,
-          int size,
-          uint8_t* data,
-          const DataSource::ReadCB& read_cb) {
+                          int size,
+                          uint8_t* data,
+                          const DataSource::ReadCB& read_cb) {
   DCHECK(!read_cb.is_null());
   {
     base::AutoLock auto_lock(lock_);
@@ -98,9 +97,8 @@ void FileDataSource::ReadTask() {
     const uint8_t* file_data = mapped_file_.data();
     int64_t available = total_bytes_ - read_op_->position();
     if (available > 0) {
-      int bytes_read =
-          static_cast<int>(std::min<int64_t>(available,
-                static_cast<int64_t>(read_op_->size())));
+      int bytes_read = static_cast<int>(
+          std::min<int64_t>(available, static_cast<int64_t>(read_op_->size())));
       memcpy(read_op_->data(), file_data + read_op_->position(), bytes_read);
       ReadOperation::Run(std::move(read_op_), bytes_read);
       return;

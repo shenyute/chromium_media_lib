@@ -11,20 +11,20 @@
 #include "base/memory/weak_ptr.h"
 #include "base/single_thread_task_runner.h"
 #include "base/synchronization/lock.h"
-#include "chromium_media_lib/resource_multibuffer.h"
 #include "chromium_media_lib/read_operation.h"
+#include "chromium_media_lib/resource_multibuffer.h"
 #include "media/base/data_source.h"
 #include "url/gurl.h"
 
 namespace media {
 
-class ResourceDataSource : public DataSource,
-    public ResourceMultiBufferClient {
+class ResourceDataSource : public DataSource, public ResourceMultiBufferClient {
  public:
-   ResourceDataSource(const GURL& url,
+  ResourceDataSource(
+      const GURL& url,
       const scoped_refptr<base::SingleThreadTaskRunner>& task_runner,
       const scoped_refptr<base::SingleThreadTaskRunner>& io_task_runner);
-   ~ResourceDataSource() override;
+  ~ResourceDataSource() override;
 
   typedef base::Callback<void(bool)> InitializeCB;
   void Initialize(const InitializeCB& init_cb);
@@ -69,6 +69,6 @@ class ResourceDataSource : public DataSource,
   DISALLOW_COPY_AND_ASSIGN(ResourceDataSource);
 };
 
-} // namespace media
+}  // namespace media
 
-#endif // CHROMIUM_MEDIA_LIB_RESOURCE_DATA_SOURCE_H_
+#endif  // CHROMIUM_MEDIA_LIB_RESOURCE_DATA_SOURCE_H_

@@ -57,4 +57,4 @@ class MediaPlayerParams {
 
 }  // namespace media
 
-#endif // CHROMIUM_MEDIA_LIB_MEDIAPLAYER_PARAMS_H_
+#endif  // CHROMIUM_MEDIA_LIB_MEDIAPLAYER_PARAMS_H_

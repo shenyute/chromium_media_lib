@@ -35,14 +35,15 @@ VideoRendererSinkImpl::VideoRendererSinkImpl(
   background_rendering_timer_.SetTaskRunner(compositor_task_runner_);
 }
 
-VideoRendererSinkImpl::~VideoRendererSinkImpl() {
-}
+VideoRendererSinkImpl::~VideoRendererSinkImpl() {}
 
 void VideoRendererSinkImpl::SetVideoRendererSinkClient(
     VideoRendererSinkClient* client) {
   if (!compositor_task_runner_->BelongsToCurrentThread()) {
-    compositor_task_runner_->PostTask(FROM_HERE, base::Bind(&VideoRendererSinkImpl::
-        SetVideoRendererSinkClient, base::Unretained(this), client));
+    compositor_task_runner_->PostTask(
+        FROM_HERE,
+        base::Bind(&VideoRendererSinkImpl::SetVideoRendererSinkClient,
+                   base::Unretained(this), client));
     return;
   }
   client_ = client;
@@ -70,9 +71,10 @@ void VideoRendererSinkImpl::Stop() {
                             base::Unretained(this), false));
 }
 
-void VideoRendererSinkImpl::PaintSingleFrame(const scoped_refptr<VideoFrame>& frame,
-                    bool repaint_duplicate_frame) {
-  //assert(false);
+void VideoRendererSinkImpl::PaintSingleFrame(
+    const scoped_refptr<VideoFrame>& frame,
+    bool repaint_duplicate_frame) {
+  // assert(false);
 }
 
 bool VideoRendererSinkImpl::ProcessNewFrame(
@@ -103,8 +105,8 @@ void VideoRendererSinkImpl::BackgroundRender() {
 }
 
 bool VideoRendererSinkImpl::CallRender(base::TimeTicks deadline_min,
-                                      base::TimeTicks deadline_max,
-                                      bool background_rendering) {
+                                       base::TimeTicks deadline_max,
+                                       bool background_rendering) {
   base::AutoLock lock(callback_lock_);
   if (!callback_) {
     // Even if we no longer have a callback, return true if we have a frame
@@ -155,5 +157,4 @@ void VideoRendererSinkImpl::OnRendererStateUpdate(bool new_state) {
   else
     client_->StopRendering();
 }
-
 }

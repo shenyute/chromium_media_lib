@@ -16,10 +16,8 @@ MediaPlayerParams::MediaPlayerParams(
       io_task_runner_(io_task_runner),
       worker_task_runner_(worker_task_runner),
       media_log_(std::move(media_log)),
-      video_renderer_sink_client_(nullptr) {
-}
+      video_renderer_sink_client_(nullptr) {}
 
-MediaPlayerParams::~MediaPlayerParams() {
-}
+MediaPlayerParams::~MediaPlayerParams() {}
 
-} // namespace media
+}  // namespace media

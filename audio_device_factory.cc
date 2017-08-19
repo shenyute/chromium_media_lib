@@ -24,7 +24,8 @@ const int64_t kMaxAuthorizationTimeoutMs = 0;  // No timeout.
 #endif
 const int64_t kHungRendererDelayMs = 30000;
 
-scoped_refptr<media::AudioRendererSink> AudioDeviceFactory::NewAudioRendererMixerSink(
+scoped_refptr<media::AudioRendererSink>
+AudioDeviceFactory::NewAudioRendererMixerSink(
     int owner_id,
     int session_id,
     const std::string& device_id,
@@ -54,4 +55,4 @@ AudioDeviceFactory::NewSwitchableAudioRendererSink(
           media::AudioLatency::LATENCY_PLAYBACK));
 }
 
-} // namespace media
+}  // namespace media

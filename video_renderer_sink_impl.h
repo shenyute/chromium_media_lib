@@ -20,11 +20,10 @@ class MEDIA_EXPORT VideoRendererSinkClient {
   virtual void DidReceiveFrame(scoped_refptr<VideoFrame> frame) = 0;
 };
 
-class MEDIA_EXPORT VideoRendererSinkImpl
-    : public VideoRendererSink {
+class MEDIA_EXPORT VideoRendererSinkImpl : public VideoRendererSink {
  public:
-  VideoRendererSinkImpl(
-    const scoped_refptr<base::SingleThreadTaskRunner>& compositor_task_runner);
+  VideoRendererSinkImpl(const scoped_refptr<base::SingleThreadTaskRunner>&
+                            compositor_task_runner);
   ~VideoRendererSinkImpl() override;
 
   void SetVideoRendererSinkClient(VideoRendererSinkClient* client);
@@ -37,9 +36,8 @@ class MEDIA_EXPORT VideoRendererSinkImpl
                         bool repaint_duplicate_frame = false) override;
 
  private:
-  bool ProcessNewFrame(
-    const scoped_refptr<VideoFrame>& frame,
-    bool repaint_duplicate_frame);
+  bool ProcessNewFrame(const scoped_refptr<VideoFrame>& frame,
+                       bool repaint_duplicate_frame);
   void BackgroundRender();
   bool CallRender(base::TimeTicks deadline_min,
                   base::TimeTicks deadline_max,
@@ -66,7 +64,6 @@ class MEDIA_EXPORT VideoRendererSinkImpl
 
   DISALLOW_COPY_AND_ASSIGN(VideoRendererSinkImpl);
 };
-
 }
 
-#endif // CHROMIUM_MEDIA_LIB_VIDEO_RENDERER_SINK_IMPL_H_
+#endif  // CHROMIUM_MEDIA_LIB_VIDEO_RENDERER_SINK_IMPL_H_

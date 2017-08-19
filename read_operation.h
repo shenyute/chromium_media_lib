@@ -34,6 +34,6 @@ class ReadOperation {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ReadOperation);
 };
 
-} // namespace media
+}  // namespace media
 
-#endif // CHROMIUM_MEDIA_LIB_READ_OPERATION_H_
+#endif  // CHROMIUM_MEDIA_LIB_READ_OPERATION_H_

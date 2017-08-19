@@ -11,7 +11,7 @@
 
 namespace media {
 
-static int kMaxWaitForReaderOffset = 512 * 1024; // 512 kb
+static int kMaxWaitForReaderOffset = 512 * 1024;  // 512 kb
 static const int kHttpPartialContent = 206;
 
 struct RequestContextInitializer {
@@ -20,12 +20,11 @@ struct RequestContextInitializer {
     builder.set_data_enabled(true);
     builder.set_file_enabled(true);
     builder.set_proxy_config_service(base::WrapUnique(
-                  new net::ProxyConfigServiceFixed(net::ProxyConfig::CreateDirect())));
+        new net::ProxyConfigServiceFixed(net::ProxyConfig::CreateDirect())));
     url_request_context_ = builder.Build();
   }
 
-  ~RequestContextInitializer() {
-  }
+  ~RequestContextInitializer() {}
 
   net::URLRequestContext* request_context() {
     return url_request_context_.get();
@@ -37,11 +36,9 @@ struct RequestContextInitializer {
 class URLFetcherResponseWriterBridge : public net::URLFetcherResponseWriter {
  public:
   URLFetcherResponseWriterBridge(ResourceMultiBuffer* buffer)
-      : buffer_(buffer) {
-  }
+      : buffer_(buffer) {}
 
-  ~URLFetcherResponseWriterBridge() override {
-  }
+  ~URLFetcherResponseWriterBridge() override {}
 
   int Initialize(const net::CompletionCallback& callback) override {
     buffer_->DidInitialize();
@@ -63,10 +60,11 @@ class URLFetcherResponseWriterBridge : public net::URLFetcherResponseWriter {
   ResourceMultiBuffer* buffer_;
 };
 
-static base::LazyInstance<RequestContextInitializer>::Leaky g_request_context_init =
-    LAZY_INSTANCE_INITIALIZER;
+static base::LazyInstance<RequestContextInitializer>::Leaky
+    g_request_context_init = LAZY_INSTANCE_INITIALIZER;
 
-ResourceMultiBuffer::ResourceMultiBuffer(ResourceMultiBufferClient* client,
+ResourceMultiBuffer::ResourceMultiBuffer(
+    ResourceMultiBufferClient* client,
     const GURL& url,
     int32_t block_size_shift,
     const scoped_refptr<base::SingleThreadTaskRunner>& io_task_runner)
@@ -76,18 +74,15 @@ ResourceMultiBuffer::ResourceMultiBuffer(ResourceMultiBufferClient* client,
       write_offset_(0),
       total_bytes_(-1),
       client_(client),
-      block_size_shift_(block_size_shift) {
-}
+      block_size_shift_(block_size_shift) {}
 
-ResourceMultiBuffer::~ResourceMultiBuffer() {
-}
+ResourceMultiBuffer::~ResourceMultiBuffer() {}
 
 void ResourceMultiBuffer::Start() {
   DCHECK(!fetcher_);
   if (!io_task_runner_->BelongsToCurrentThread()) {
-    io_task_runner_->PostTask(
-        FROM_HERE, base::Bind(
-            &ResourceMultiBuffer::Start, base::Unretained(this)));
+    io_task_runner_->PostTask(FROM_HERE, base::Bind(&ResourceMultiBuffer::Start,
+                                                    base::Unretained(this)));
     return;
   }
   base::AutoLock auto_lock(lock_);
@@ -126,13 +121,15 @@ int ResourceMultiBuffer::Fill(int position, int size, void* data) {
   --i;
   int write_bytes = 0;
   DCHECK_LE(i->first << block_size_shift_, position);
-  while (i != cache_.end() && size > 0
-      && ((i->first << block_size_shift_) + i->second->data_size() >= position)) {
+  while (
+      i != cache_.end() && size > 0 &&
+      ((i->first << block_size_shift_) + i->second->data_size() >= position)) {
     // copy buffer
     const int start_position = position - (i->first << block_size_shift_);
-    const int remain_size = std::min(i->second->data_size() - start_position, size);
+    const int remain_size =
+        std::min(i->second->data_size() - start_position, size);
     DCHECK(remain_size >= 0);
-    uint8_t *p = (uint8_t*)data + write_bytes;
+    uint8_t* p = (uint8_t*)data + write_bytes;
     memcpy(p, i->second->data() + start_position, remain_size);
     size -= remain_size;
     position += remain_size;
@@ -146,9 +143,9 @@ int ResourceMultiBuffer::Fill(int position, int size, void* data) {
   return write_bytes > 0 ? write_bytes : net::ERR_IO_PENDING;
 }
 
-
 void ResourceMultiBuffer::OnURLFetchComplete(const net::URLFetcher* source) {
-  LOG(INFO) << "OnURLFetchComplete source=" << source << " fetcher_=" << fetcher_.get();
+  LOG(INFO) << "OnURLFetchComplete source=" << source
+            << " fetcher_=" << fetcher_.get();
 }
 
 void ResourceMultiBuffer::DidInitialize() {
@@ -156,13 +153,14 @@ void ResourceMultiBuffer::DidInitialize() {
 }
 
 int ResourceMultiBuffer::OnWrite(net::IOBuffer* buffer,
-          int num_bytes,
-          const net::CompletionCallback& callback) {
+                                 int num_bytes,
+                                 const net::CompletionCallback& callback) {
   DCHECK(io_task_runner_->BelongsToCurrentThread());
 
   // int written = net::ERR_ABORTED;
   // http 2XX
   int written_bytes = num_bytes;
+  LOG(INFO) << "write_offset=" << write_offset_ << " num_bytes=" << num_bytes;
   {
     base::AutoLock auto_lock(lock_);
     bool partial_response = fetcher_->GetResponseCode() == kHttpPartialContent;
@@ -170,9 +168,8 @@ int ResourceMultiBuffer::OnWrite(net::IOBuffer* buffer,
       if (partial_response) {
         net::HttpResponseHeaders* headers = fetcher_->GetResponseHeaders();
         int64_t first_byte_pos, last_byte_pos, instance_length;
-        bool success = headers->GetContentRangeFor206(&first_byte_pos,
-                               &last_byte_pos,
-                               &instance_length);
+        bool success = headers->GetContentRangeFor206(
+            &first_byte_pos, &last_byte_pos, &instance_length);
         if (success)
           total_bytes_ = instance_length;
       } else {
@@ -194,7 +191,8 @@ int ResourceMultiBuffer::OnWrite(net::IOBuffer* buffer,
         int remain_size = std::min(buffer_size - write_start, num_bytes);
         memcpy(entry->writable_data() + write_start, read_data, remain_size);
         entry->set_data_size(write_start + remain_size);
-        LOG(INFO) << "id=" << id << " data_size=" << (write_start + remain_size);
+        LOG(INFO) << "id=" << id
+                  << " data_size=" << (write_start + remain_size);
         read_data += remain_size;
         write_offset_ += remain_size;
         num_bytes -= remain_size;
@@ -202,11 +200,12 @@ int ResourceMultiBuffer::OnWrite(net::IOBuffer* buffer,
       }
     }
   }
-  //client_->OnUpdateState();
+  // client_->OnUpdateState();
   return written_bytes;
 }
 
-int ResourceMultiBuffer::OnFinish(int net_error, const net::CompletionCallback& callback) {
+int ResourceMultiBuffer::OnFinish(int net_error,
+                                  const net::CompletionCallback& callback) {
   LOG(INFO) << "ResourceDataSource::OnFinish error=" << net_error;
   client_->OnUpdateState();
   return 0;
@@ -218,15 +217,19 @@ void ResourceMultiBuffer::CreateFetcherFrom(int position) {
       g_request_context_init.Pointer()->request_context(), io_task_runner_));
   std::unique_ptr<net::URLFetcherResponseWriter> response_writer =
       base::MakeUnique<URLFetcherResponseWriterBridge>(this);
-  fetcher_->SetExtraRequestHeaders("Accept-Encoding: identity;q=1, *;q=0\r\nUser-Agent:Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36\r\n");
+  fetcher_->SetExtraRequestHeaders(
+      "Accept-Encoding: identity;q=1, *;q=0\r\nUser-Agent:Mozilla/5.0 (X11; "
+      "Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) "
+      "Chrome/59.0.3071.115 Safari/537.36\r\n");
   fetcher_->SaveResponseWithWriter(std::move(response_writer));
   std::stringstream range_header;
   write_start_pos_ = position;
   write_offset_ = 0;
-  range_header << "Range: " << "bytes=" << position << "-";
+  range_header << "Range: "
+               << "bytes=" << position << "-";
   LOG(INFO) << "CreateFetcherFrom range=" << range_header.str();
   fetcher_->AddExtraRequestHeader(range_header.str());
   fetcher_->Start();
 }
 
-} //namespace media
+}  // namespace media

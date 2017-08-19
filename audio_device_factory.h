@@ -25,13 +25,12 @@ class MEDIA_EXPORT AudioDeviceFactory {
       const std::string& device_id,
       const url::Origin& security_origin);
   static scoped_refptr<media::SwitchableAudioRendererSink>
-      NewSwitchableAudioRendererSink(
-          int owner_frame_id,
-          int session_id,
-          const std::string& device_id,
-          const url::Origin& security_origin);
+  NewSwitchableAudioRendererSink(int owner_frame_id,
+                                 int session_id,
+                                 const std::string& device_id,
+                                 const url::Origin& security_origin);
 };
 
-} // namespace media
+}  // namespace media
 
-#endif // CHROMIUM_MEDIA_LIB_AUDIO_DEVICE_FACTORY_H_
+#endif  // CHROMIUM_MEDIA_LIB_AUDIO_DEVICE_FACTORY_H_

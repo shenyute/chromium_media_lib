@@ -93,10 +93,8 @@ void AudioMessageFilter::AudioOutputIPCImpl::RequestDeviceAuthorization(
 
   stream_id_ = filter_->delegates_.Add(delegate);
   MediaContext::Get()->audio_renderer_host()->RequestDeviceAuthorization(
-      stream_id_, render_frame_id_,
-      session_id, device_id, security_origin,
-      base::Bind(&AudioMessageFilter::OnAuthorizationCompleted,
-                 filter_));
+      stream_id_, render_frame_id_, session_id, device_id, security_origin,
+      base::Bind(&AudioMessageFilter::OnAuthorizationCompleted, filter_));
 }
 
 void AudioMessageFilter::AudioOutputIPCImpl::CreateStream(
@@ -114,8 +112,7 @@ void AudioMessageFilter::AudioOutputIPCImpl::CreateStream(
 
 void AudioMessageFilter::AudioOutputIPCImpl::PlayStream() {
   DCHECK(stream_created_);
-  MediaContext::Get()->audio_renderer_host()->PlayStream(
-      stream_id_);
+  MediaContext::Get()->audio_renderer_host()->PlayStream(stream_id_);
 }
 
 void AudioMessageFilter::AudioOutputIPCImpl::PauseStream() {

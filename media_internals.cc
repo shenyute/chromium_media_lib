@@ -22,10 +22,10 @@ std::string EffectsToString(int effects) {
     int flag;
     const char* name;
   } flags[] = {
-    { media::AudioParameters::ECHO_CANCELLER, "ECHO_CANCELLER" },
-    { media::AudioParameters::DUCKING, "DUCKING" },
-    { media::AudioParameters::KEYBOARD_MIC, "KEYBOARD_MIC" },
-    { media::AudioParameters::HOTWORD, "HOTWORD" },
+      {media::AudioParameters::ECHO_CANCELLER, "ECHO_CANCELLER"},
+      {media::AudioParameters::DUCKING, "DUCKING"},
+      {media::AudioParameters::KEYBOARD_MIC, "KEYBOARD_MIC"},
+      {media::AudioParameters::HOTWORD, "HOTWORD"},
   };
 
   std::string ret;
@@ -199,12 +199,9 @@ MediaInternals* MediaInternals::GetInstance() {
   return internals;
 }
 
-MediaInternals::MediaInternals()
-    : owner_ids_() {
-}
+MediaInternals::MediaInternals() : owner_ids_() {}
 
 MediaInternals::~MediaInternals() {}
-
 
 std::unique_ptr<AudioLog> MediaInternals::CreateAudioLog(
     AudioComponent component) {
@@ -220,4 +217,4 @@ void MediaInternals::UpdateAudioLog(AudioLogUpdateType type,
   // TODO
 }
 
-} // namespace media
+}  // namespace media

@@ -62,7 +62,6 @@ class AudioSourceProviderImpl::TeeFilter
   DISALLOW_COPY_AND_ASSIGN(TeeFilter);
 };
 
-
 AudioSourceProviderImpl::AudioSourceProviderImpl(
     scoped_refptr<SwitchableAudioRendererSink> sink,
     scoped_refptr<MediaLog> media_log)
@@ -72,11 +71,10 @@ AudioSourceProviderImpl::AudioSourceProviderImpl(
       media_log_(std::move(media_log)),
       weak_factory_(this) {}
 
-AudioSourceProviderImpl::~AudioSourceProviderImpl() {
-}
+AudioSourceProviderImpl::~AudioSourceProviderImpl() {}
 
 void AudioSourceProviderImpl::Initialize(const AudioParameters& params,
-                        RenderCallback* renderer) {
+                                         RenderCallback* renderer) {
   base::AutoLock auto_lock(sink_lock_);
   OutputDeviceStatus device_status =
       sink_ ? sink_->GetOutputDeviceInfo().device_status()
@@ -133,9 +131,10 @@ bool AudioSourceProviderImpl::CurrentThreadIsRenderingThread() {
   return false;
 }
 
-void AudioSourceProviderImpl::SwitchOutputDevice(const std::string& device_id,
-                        const url::Origin& security_origin,
-                        const OutputDeviceStatusCB& callback) {
+void AudioSourceProviderImpl::SwitchOutputDevice(
+    const std::string& device_id,
+    const url::Origin& security_origin,
+    const OutputDeviceStatusCB& callback) {
   if (!sink_)
     callback.Run(OUTPUT_DEVICE_STATUS_ERROR_INTERNAL);
   else
@@ -148,11 +147,10 @@ AudioSourceProviderImpl::CreateFallbackSink() {
   return new NullAudioSink(base::ThreadTaskRunnerHandle::Get());
 }
 
-int AudioSourceProviderImpl::TeeFilter::Render(
-    base::TimeDelta delay,
-    base::TimeTicks delay_timestamp,
-    int prior_frames_skipped,
-    AudioBus* audio_bus) {
+int AudioSourceProviderImpl::TeeFilter::Render(base::TimeDelta delay,
+                                               base::TimeTicks delay_timestamp,
+                                               int prior_frames_skipped,
+                                               AudioBus* audio_bus) {
   DCHECK(IsInitialized());
 
   const int num_rendered_frames = renderer_->Render(
@@ -176,4 +174,4 @@ void AudioSourceProviderImpl::TeeFilter::OnRenderError() {
   renderer_->OnRenderError();
 }
 
-} // namespace media
+}  // namespace media

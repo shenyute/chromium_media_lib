@@ -15,8 +15,8 @@
 #include "base/sync_socket.h"
 #include "base/synchronization/lock.h"
 #include "chromium_media_lib/audio_renderer_host.h"
-#include "media/base/media_export.h"
 #include "media/audio/audio_output_ipc.h"
+#include "media/base/media_export.h"
 
 namespace base {
 class SingleThreadTaskRunner;
@@ -62,9 +62,9 @@ class MEDIA_EXPORT AudioMessageFilter
   // Received when the browser process has checked authorization to use an
   // audio output device.
   void OnAuthorizationCompleted(int stream_id,
-      media::OutputDeviceStatus device_status,
-      const media::AudioParameters& output_params,
-      const std::string& matched_device_id);
+                                media::OutputDeviceStatus device_status,
+                                const media::AudioParameters& output_params,
+                                const std::string& matched_device_id);
 
   // AudioRendererHostClient
   // Received when browser process has created an audio output stream.

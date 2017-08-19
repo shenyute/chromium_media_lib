@@ -13,10 +13,10 @@
 #include "base/macros.h"
 #include "base/synchronization/lock.h"
 #include "media/audio/audio_device_description.h"
-#include "media/base/media_export.h"
 #include "media/base/audio_latency.h"
 #include "media/base/audio_parameters.h"
 #include "media/base/audio_renderer_mixer_pool.h"
+#include "media/base/media_export.h"
 #include "media/base/output_device_info.h"
 #include "url/origin.h"
 
@@ -170,4 +170,4 @@ class MEDIA_EXPORT AudioRendererMixerManager
 
 }  // namespace media
 
-#endif // CHROMIUM_MEDIA_LIB_MEDIA_AUDIO_RENDERER_MIXER_MANAGER_H_
+#endif  // CHROMIUM_MEDIA_LIB_MEDIA_AUDIO_RENDERER_MIXER_MANAGER_H_

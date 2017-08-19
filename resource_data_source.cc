@@ -7,7 +7,8 @@ namespace media {
 
 const int kBlockSizeShift = 15;  // 1<<15 == 32kb
 
-ResourceDataSource::ResourceDataSource(const GURL& url,
+ResourceDataSource::ResourceDataSource(
+    const GURL& url,
     const scoped_refptr<base::SingleThreadTaskRunner>& task_runner,
     const scoped_refptr<base::SingleThreadTaskRunner>& io_task_runner)
     : render_task_runner_(task_runner),
@@ -20,8 +21,7 @@ ResourceDataSource::ResourceDataSource(const GURL& url,
   weak_ptr_ = weak_factory_.GetWeakPtr();
 }
 
-ResourceDataSource::~ResourceDataSource() {
-}
+ResourceDataSource::~ResourceDataSource() {}
 
 void ResourceDataSource::Initialize(const InitializeCB& init_cb) {
   DCHECK(render_task_runner_->BelongsToCurrentThread());
@@ -40,11 +40,10 @@ void ResourceDataSource::Abort() {
   stop_signal_received_ = true;
 }
 
-
 void ResourceDataSource::Read(int64_t position,
-          int size,
-          uint8_t* data,
-          const DataSource::ReadCB& read_cb) {
+                              int size,
+                              uint8_t* data,
+                              const DataSource::ReadCB& read_cb) {
   DCHECK(!read_cb.is_null());
   DCHECK(!read_op_);
   {
@@ -56,7 +55,7 @@ void ResourceDataSource::Read(int64_t position,
   }
   read_op_.reset(new ReadOperation(position, size, data, read_cb));
   LOG(INFO) << "ResourceDataSource::Read position=" << read_op_->position()
-      << " size=" << read_op_->size();
+            << " size=" << read_op_->size();
   render_task_runner_->PostTask(
       FROM_HERE,
       base::Bind(&ResourceDataSource::ReadTask, weak_factory_.GetWeakPtr()));
@@ -90,14 +89,18 @@ void ResourceDataSource::ReadTask() {
   DCHECK(read_op_->size());
   multibuffer_.Seek(read_op_->position());
   int bytes_read = multibuffer_.Fill(read_op_->position(), read_op_->size(),
-      read_op_->data());
+                                     read_op_->data());
+  LOG(INFO) << "ResourceDataSource::ReadTask read_op=" << read_op_.get()
+            << " position=" << read_op_->position()
+            << " size=" << read_op_->size() << " bytes_read=" << bytes_read;
   if (bytes_read > 0) {
     ReadOperation::Run(std::move(read_op_), bytes_read);
   } else if (bytes_read == net::ERR_IO_PENDING) {
     // wait until OnUpdateState
-    render_task_runner_->PostDelayedTask(FROM_HERE,
+    render_task_runner_->PostDelayedTask(
+        FROM_HERE,
         base::Bind(&ResourceDataSource::ReadTask, weak_factory_.GetWeakPtr()),
-            base::TimeDelta::FromMilliseconds(1000));
+        base::TimeDelta::FromMilliseconds(1000));
   } else {
     ReadOperation::Run(std::move(read_op_), kReadError);
   }
@@ -113,8 +116,9 @@ void ResourceDataSource::DidInitialize() {
 
 void ResourceDataSource::OnUpdateState() {
   DCHECK(io_task_runner_->BelongsToCurrentThread());
-  render_task_runner_->PostTask(FROM_HERE,
+  render_task_runner_->PostTask(
+      FROM_HERE,
       base::Bind(&ResourceDataSource::ReadTask, weak_factory_.GetWeakPtr()));
 }
 
-} // namespace media
+}  // namespace media

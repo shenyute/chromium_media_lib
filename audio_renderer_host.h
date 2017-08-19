@@ -30,11 +30,12 @@ class MEDIA_EXPORT AudioRendererHost
  public:
   class AudioRendererHostClient {
    public:
-     virtual void OnStreamCreated(int stream_id,
-         base::SharedMemoryHandle handle,
-         base::SyncSocket::TransitDescriptor socket_descriptor,
-         uint32_t length) = 0;
-     virtual void OnStreamError(int stream_id) = 0;
+    virtual void OnStreamCreated(
+        int stream_id,
+        base::SharedMemoryHandle handle,
+        base::SyncSocket::TransitDescriptor socket_descriptor,
+        uint32_t length) = 0;
+    virtual void OnStreamError(int stream_id) = 0;
   };
   void SetClient(AudioRendererHostClient* client);
 
@@ -43,8 +44,7 @@ class MEDIA_EXPORT AudioRendererHost
                     AudioRendererHostClient* client);
 
   using AuthorizationCompletedCallback =
-      base::Callback<void(
-                          int stream_id,
+      base::Callback<void(int stream_id,
                           OutputDeviceStatus status,
                           const AudioParameters& output_params,
                           const std::string& matched_device_id)>;
@@ -57,8 +57,8 @@ class MEDIA_EXPORT AudioRendererHost
                                   AuthorizationCompletedCallback cb);
 
   void CreateStream(int stream_id,
-      int render_frame_id,
-      const AudioParameters& params);
+                    int render_frame_id,
+                    const AudioParameters& params);
   void PlayStream(int stream_id);
 
   // AudioOutputDelegate::EventHandler implementation
@@ -71,16 +71,14 @@ class MEDIA_EXPORT AudioRendererHost
   ~AudioRendererHost() override;
 
  private:
-  void DeviceParametersReceived(
-      int stream_id,
-      AuthorizationCompletedCallback cb,
-      const std::string& raw_device_id,
-      const AudioParameters& output_params) const;
+  void DeviceParametersReceived(int stream_id,
+                                AuthorizationCompletedCallback cb,
+                                const std::string& raw_device_id,
+                                const AudioParameters& output_params) const;
 
   using AudioOutputDelegateVector =
       std::vector<std::unique_ptr<AudioOutputDelegate>>;
-  AudioOutputDelegateVector::iterator
-      LookupIteratorById(int stream_id);
+  AudioOutputDelegateVector::iterator LookupIteratorById(int stream_id);
   void OnCloseStream(int stream_id);
   AudioOutputDelegate* LookupById(int stream_id);
 
@@ -91,6 +89,6 @@ class MEDIA_EXPORT AudioRendererHost
   AudioOutputDelegateVector delegates_;
 };
 
-} // namespace media
+}  // namespace media
 
-#endif // CHROMIUM_MEDIA_LIB_AUDIO_RENDERER_HOST_H_
+#endif  // CHROMIUM_MEDIA_LIB_AUDIO_RENDERER_HOST_H_

@@ -13,35 +13,30 @@ namespace media {
 
 namespace {
 
-static base::LazyInstance<MediaContext>::DestructorAtExit
-    g_context = LAZY_INSTANCE_INITIALIZER;
+static base::LazyInstance<MediaContext>::DestructorAtExit g_context =
+    LAZY_INSTANCE_INITIALIZER;
 }
 
 MediaContext* MediaContext::Get() {
   return g_context.Pointer();
 }
 
-MediaContext::MediaContext()
-    : io_thread_(new base::Thread("Media IO")) {
+MediaContext::MediaContext() : io_thread_(new base::Thread("Media IO")) {
   io_thread_->Start();
-  audio_message_filter_ = new AudioMessageFilter(
-      io_thread_->task_runner());
+  audio_message_filter_ = new AudioMessageFilter(io_thread_->task_runner());
   decoder_factory_.reset(new DecoderFactory());
   audio_manager_ = AudioManager::Create(
-      io_thread_->task_runner(),
-      io_thread_->task_runner(),
-      io_thread_->task_runner(),
-      MediaInternals::GetInstance());
+      io_thread_->task_runner(), io_thread_->task_runner(),
+      io_thread_->task_runner(), MediaInternals::GetInstance());
   CHECK(audio_manager_);
 
   audio_system_ = media::AudioSystemImpl::Create(audio_manager_.get());
-  audio_renderer_host_ = base::MakeUnique<AudioRendererHost>(audio_manager_.get(),
-      audio_system_.get(), audio_message_filter_.get());
+  audio_renderer_host_ = base::MakeUnique<AudioRendererHost>(
+      audio_manager_.get(), audio_system_.get(), audio_message_filter_.get());
   CHECK(audio_system_);
 }
 
-MediaContext::~MediaContext() {
-}
+MediaContext::~MediaContext() {}
 
 DecoderFactory* MediaContext::GetDecoderFactory() {
   return decoder_factory_.get();
@@ -87,4 +82,4 @@ base::SingleThreadTaskRunner* MediaContext::io_task_runner() const {
   return io_thread_->task_runner().get();
 }
 
-} // namespace media
+}  // namespace media
