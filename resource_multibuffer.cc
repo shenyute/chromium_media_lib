@@ -211,7 +211,8 @@ int ResourceMultiBuffer::OnWrite(net::IOBuffer* buffer,
         } else {
           entry = found->second;
         }
-        int write_start = entry->data_size();
+        int write_start = ((write_start_pos_ + write_offset_) &
+                           ((1 << block_size_shift_) - 1));
         int remain_size = std::min(buffer_size - write_start, num_bytes);
         memcpy(entry->writable_data() + write_start, read_data, remain_size);
         entry->set_data_size(write_start + remain_size);
