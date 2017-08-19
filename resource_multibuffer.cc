@@ -113,31 +113,34 @@ int ResourceMultiBuffer::Fill(int position, int size, void* data) {
   base::AutoLock auto_lock(lock_);
   MultiBufferBlockId id = ToBlockId(position);
   const int buffer_size = 1 << block_size_shift_;
-  auto i = cache_.upper_bound(id);
-  DCHECK(i == cache_.end() || (i->first << block_size_shift_) > position);
-  if (i == cache_.begin()) {
+  auto it = cache_.upper_bound(id);
+  DCHECK(it == cache_.end() || (it->first << block_size_shift_) > position);
+  if (it == cache_.begin()) {
     return net::ERR_IO_PENDING;
   }
-  --i;
+  --it;
   int write_bytes = 0;
-  DCHECK_LE(i->first << block_size_shift_, position);
-  while (
-      i != cache_.end() && size > 0 &&
-      ((i->first << block_size_shift_) + i->second->data_size() >= position)) {
+  int index = it->first;
+  DCHECK_LE(it->first << block_size_shift_, position);
+  while (it != cache_.end() && size > 0 &&
+         ((it->first << block_size_shift_) + it->second->data_size() >=
+          position) &&
+         index == it->first) {
     // copy buffer
-    const int start_position = position - (i->first << block_size_shift_);
+    const int start_position = position - (it->first << block_size_shift_);
     const int remain_size =
-        std::min(i->second->data_size() - start_position, size);
+        std::min(it->second->data_size() - start_position, size);
     DCHECK(remain_size >= 0);
     uint8_t* p = (uint8_t*)data + write_bytes;
-    memcpy(p, i->second->data() + start_position, remain_size);
+    memcpy(p, it->second->data() + start_position, remain_size);
     size -= remain_size;
     position += remain_size;
     write_bytes += remain_size;
     // the buffer is not full, so need to wait until ready.
-    if (i->second->data_size() != buffer_size)
+    if (it->second->data_size() != buffer_size)
       break;
-    ++i;
+    ++it;
+    ++index;
   }
 
   return write_bytes > 0 ? write_bytes : net::ERR_IO_PENDING;
