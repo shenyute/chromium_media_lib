@@ -8,6 +8,7 @@
 #include "base/threading/thread_local.h"
 #include "chromium_media_lib/media_internals.h"
 #include "media/audio/audio_system_impl.h"
+#include "media/audio/audio_thread_impl.h"
 
 namespace media {
 
@@ -26,8 +27,8 @@ MediaContext::MediaContext() : io_thread_(new base::Thread("Media IO")) {
   audio_message_filter_ = new AudioMessageFilter(io_thread_->task_runner());
   decoder_factory_.reset(new DecoderFactory());
   audio_manager_ = AudioManager::Create(
-      io_thread_->task_runner(), io_thread_->task_runner(),
-      io_thread_->task_runner(), MediaInternals::GetInstance());
+      base::MakeUnique<media::AudioThreadImpl>(),
+      MediaInternals::GetInstance());
   CHECK(audio_manager_);
 
   audio_system_ = media::AudioSystemImpl::Create(audio_manager_.get());
@@ -52,9 +53,8 @@ AudioRendererMixerManager* MediaContext::GetAudioRendererMixerManager() {
 
 std::unique_ptr<base::TaskScheduler::InitParams>
 MediaContext::GetDefaultTaskSchedulerInitParams() {
-  using StandbyThreadPolicy =
-      base::SchedulerWorkerPoolParams::StandbyThreadPolicy;
-
+  // Reference GetDefaultTaskSchedulerInitParams
+  // from content/renderer/render_process_impl.cc
   constexpr int kMaxNumThreadsInBackgroundPool = 1;
   constexpr int kMaxNumThreadsInBackgroundBlockingPool = 1;
   constexpr int kMaxNumThreadsInForegroundPoolLowerBound = 2;
@@ -62,19 +62,16 @@ MediaContext::GetDefaultTaskSchedulerInitParams() {
   constexpr auto kSuggestedReclaimTime = base::TimeDelta::FromSeconds(30);
 
   return base::MakeUnique<base::TaskScheduler::InitParams>(
-      base::SchedulerWorkerPoolParams(StandbyThreadPolicy::LAZY,
-                                      kMaxNumThreadsInBackgroundPool,
+      base::SchedulerWorkerPoolParams(kMaxNumThreadsInBackgroundPool,
                                       kSuggestedReclaimTime),
-      base::SchedulerWorkerPoolParams(StandbyThreadPolicy::LAZY,
-                                      kMaxNumThreadsInBackgroundBlockingPool,
+      base::SchedulerWorkerPoolParams(kMaxNumThreadsInBackgroundBlockingPool,
                                       kSuggestedReclaimTime),
       base::SchedulerWorkerPoolParams(
-          StandbyThreadPolicy::LAZY,
-          std::max(kMaxNumThreadsInForegroundPoolLowerBound,
-                   base::SysInfo::NumberOfProcessors()),
+          std::max(
+              kMaxNumThreadsInForegroundPoolLowerBound,
+              base::SysInfo::NumberOfProcessors()),
           kSuggestedReclaimTime),
-      base::SchedulerWorkerPoolParams(StandbyThreadPolicy::LAZY,
-                                      kMaxNumThreadsInForegroundBlockingPool,
+      base::SchedulerWorkerPoolParams(kMaxNumThreadsInForegroundBlockingPool,
                                       kSuggestedReclaimTime));
 }
 

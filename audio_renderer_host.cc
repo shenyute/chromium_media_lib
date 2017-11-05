@@ -99,14 +99,17 @@ void AudioRendererHost::DeviceParametersReceived(
 
 void AudioRendererHost::OnStreamCreated(
     int stream_id,
-    base::SharedMemory* shared_memory,
+    const base::SharedMemory* shared_memory,
     std::unique_ptr<base::CancelableSyncSocket> foreign_socket) {
-  base::SharedMemoryHandle foreign_memory_handle;
   base::SyncSocket::TransitDescriptor socket_descriptor;
-  base::ProcessHandle handle = base::GetCurrentProcessHandle();
   size_t shared_memory_size = shared_memory->requested_size();
-  if (!(shared_memory->ShareToProcess(handle, &foreign_memory_handle) &&
-        foreign_socket->PrepareTransitDescriptor(handle, &socket_descriptor))) {
+
+  base::SharedMemoryHandle foreign_memory_handle =
+      shared_memory->handle().Duplicate();
+  base::ProcessHandle handle = base::GetCurrentProcessHandle();
+  if (!(foreign_memory_handle.IsValid() &&
+        foreign_socket->PrepareTransitDescriptor(handle,
+                                                 &socket_descriptor))) {
     // Something went wrong in preparing the IPC handles.
     client_->OnStreamError(stream_id);
     return;

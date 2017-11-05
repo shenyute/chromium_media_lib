@@ -39,7 +39,7 @@ class MEDIA_EXPORT MediaContext {
   std::unique_ptr<DecoderFactory> decoder_factory_;
   std::unique_ptr<base::Thread> io_thread_;
   scoped_refptr<AudioMessageFilter> audio_message_filter_;
-  ScopedAudioManagerPtr audio_manager_;
+  std::unique_ptr<media::AudioManager> audio_manager_;
   std::unique_ptr<AudioSystem> audio_system_;
   std::unique_ptr<AudioRendererHost> audio_renderer_host_;
 };

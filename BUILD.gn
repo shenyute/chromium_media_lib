@@ -1,4 +1,5 @@
 import("//build/config/features.gni")
+import("//build/config/sanitizers/sanitizers.gni")
 import("//media/media_options.gni")
 
 
@@ -62,6 +63,7 @@ static_library("chromium_media") {
 
 executable("media_example") {
   deps = [
+    "//build/config:exe_and_shlib_deps",
     "//base",
     "//skia",
     "//media",

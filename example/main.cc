@@ -43,9 +43,10 @@ struct MainParams {
 void init(MainParams* params) {
   std::unique_ptr<base::TaskScheduler::InitParams> task_scheduler_init_params =
       media::MediaContext::Get()->GetDefaultTaskSchedulerInitParams();
-  base::TaskScheduler::CreateAndSetDefaultTaskScheduler("renderer",
+  base::TaskScheduler::Create("renderer");
+  base::TaskScheduler::GetInstance()->Start(
       *task_scheduler_init_params.get());
-  scoped_refptr<media::MediaLog> media_log = new media::MediaLog();
+  std::unique_ptr<media::MediaLog> media_log(new media::MediaLog());
   media::MediaPlayerParams media_params(base::MessageLoop::current()->task_runner(),
       params->media_thread->task_runner(),
       params->io_thread->task_runner(),

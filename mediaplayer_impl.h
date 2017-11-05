@@ -26,7 +26,7 @@
 namespace media {
 
 class MEDIA_EXPORT MediaPlayerImpl
-    : public NON_EXPORTED_BASE(Pipeline::Client),
+    : public Pipeline::Client,
       public MediaObserverClient,
       public base::SupportsWeakPtr<MediaPlayerImpl> {
  public:
@@ -55,13 +55,20 @@ class MEDIA_EXPORT MediaPlayerImpl
   void OnAddTextTrack(const TextTrackConfig& config,
                       const AddTextTrackDoneCB& done_cb) override;
   void OnWaitingForDecryptionKey() override;
+  void OnAudioConfigChange(const AudioDecoderConfig& config) override;
+  void OnVideoConfigChange(const VideoDecoderConfig& config) override;
   void OnVideoNaturalSizeChange(const gfx::Size& size) override;
   void OnVideoOpacityChange(bool opaque) override;
   void OnVideoAverageKeyframeDistanceUpdate() override;
 
   // MediaObserverClient implementation.
-  void SwitchRenderer(bool is_rendered_remotely) override;
+  void SwitchToRemoteRenderer(
+      const std::string& remote_device_friendly_name) override;
+  void SwitchToLocalRenderer() override;
   void ActivateViewportIntersectionMonitoring(bool activate) override;
+  void UpdateRemotePlaybackCompatibility(bool is_compatible) override;
+  size_t AudioDecodedByteCount() const override;
+  size_t VideoDecodedByteCount() const override;
 
   void DataSourceInitialized(bool success);
   void StartPipeline();
@@ -79,12 +86,14 @@ class MEDIA_EXPORT MediaPlayerImpl
                                 const std::vector<uint8_t>& init_data);
   void OnFFmpegMediaTracksUpdated(std::unique_ptr<MediaTracks> tracks);
 
+  PipelineStatistics GetPipelineStatistics() const;
+
  private:
   const scoped_refptr<base::SingleThreadTaskRunner> main_task_runner_;
   scoped_refptr<base::SingleThreadTaskRunner> media_task_runner_;
   scoped_refptr<base::SingleThreadTaskRunner> io_task_runner_;
   scoped_refptr<base::TaskRunner> worker_task_runner_;
-  scoped_refptr<MediaLog> media_log_;
+  std::unique_ptr<MediaLog> media_log_;
   scoped_refptr<AudioSourceProviderImpl> audio_source_provider_;
   int owner_id_;
 

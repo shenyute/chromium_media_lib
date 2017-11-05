@@ -26,7 +26,7 @@ struct MediaLogEvent;
 
 // This class stores information about currently active media.
 class MEDIA_EXPORT MediaInternals
-    : NON_EXPORTED_BASE(public media::AudioLogFactory) {
+    : public media::AudioLogFactory {
  public:
   static MediaInternals* GetInstance();
 

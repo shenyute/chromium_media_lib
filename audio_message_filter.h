@@ -9,7 +9,7 @@
 
 #include <memory>
 
-#include "base/id_map.h"
+#include "base/containers/id_map.h"
 #include "base/macros.h"
 #include "base/memory/shared_memory.h"
 #include "base/sync_socket.h"
@@ -79,7 +79,7 @@ class MEDIA_EXPORT AudioMessageFilter
 
   // A map of stream ids to delegates; must only be accessed on
   // |io_task_runner_|.
-  IDMap<media::AudioOutputIPCDelegate*> delegates_;
+  base::IDMap<media::AudioOutputIPCDelegate*> delegates_;
 
   // Task runner on which IPC calls are executed.
   const scoped_refptr<base::SingleThreadTaskRunner> io_task_runner_;

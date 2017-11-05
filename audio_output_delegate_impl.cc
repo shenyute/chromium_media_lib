@@ -23,6 +23,7 @@ class AudioOutputDelegateImpl::ControllerEventHandler
   void OnControllerPlaying() override;
   void OnControllerPaused() override;
   void OnControllerError() override;
+  void OnLog(const std::string& message) override;
 
   base::WeakPtr<AudioOutputDelegateImpl> delegate_;
 
@@ -55,6 +56,10 @@ void AudioOutputDelegateImpl::ControllerEventHandler::OnControllerPaused() {
 void AudioOutputDelegateImpl::ControllerEventHandler::OnControllerError() {
   io_task_runner_->PostTask(
       FROM_HERE, base::Bind(&AudioOutputDelegateImpl::OnError, delegate_));
+}
+
+void AudioOutputDelegateImpl::ControllerEventHandler::OnLog(
+    const std::string& message) {
 }
 
 AudioOutputDelegateImpl::AudioOutputDelegateImpl(
@@ -105,11 +110,6 @@ AudioOutputDelegateImpl::~AudioOutputDelegateImpl() {
                     scoped_refptr<AudioOutputController> controller) {},
                  base::Passed(&controller_event_handler_),
                  base::Passed(&reader_), controller_));
-}
-
-scoped_refptr<AudioOutputController> AudioOutputDelegateImpl::GetController()
-    const {
-  return controller_;
 }
 
 int AudioOutputDelegateImpl::GetStreamId() const {

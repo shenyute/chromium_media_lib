@@ -16,13 +16,13 @@ namespace media {
 class MediaLog;
 
 class MEDIA_EXPORT AudioSourceProviderImpl
-    : NON_EXPORTED_BASE(public SwitchableAudioRendererSink) {
+    : public SwitchableAudioRendererSink {
  public:
   using CopyAudioCB = base::Callback<void(std::unique_ptr<AudioBus>,
                                           uint32_t frames_delayed,
                                           int sample_rate)>;
   AudioSourceProviderImpl(scoped_refptr<SwitchableAudioRendererSink> sink,
-                          scoped_refptr<MediaLog> media_log);
+                          MediaLog* media_log);
 
   // RestartableAudioRendererSink implementation.
   void Initialize(const AudioParameters& params,
@@ -33,6 +33,7 @@ class MEDIA_EXPORT AudioSourceProviderImpl
   void Pause() override;
   bool SetVolume(double volume) override;
   OutputDeviceInfo GetOutputDeviceInfo() override;
+  bool IsOptimizedForHardwareParameters() override;
   bool CurrentThreadIsRenderingThread() override;
   void SwitchOutputDevice(const std::string& device_id,
                           const url::Origin& security_origin,
@@ -50,7 +51,7 @@ class MEDIA_EXPORT AudioSourceProviderImpl
   class TeeFilter;
   const std::unique_ptr<TeeFilter> tee_filter_;
 
-  scoped_refptr<MediaLog> const media_log_;
+  MediaLog* const media_log_;
 
   // NOTE: Weak pointers must be invalidated before all other member variables.
   base::WeakPtrFactory<AudioSourceProviderImpl> weak_factory_;

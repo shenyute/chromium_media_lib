@@ -64,11 +64,11 @@ class AudioSourceProviderImpl::TeeFilter
 
 AudioSourceProviderImpl::AudioSourceProviderImpl(
     scoped_refptr<SwitchableAudioRendererSink> sink,
-    scoped_refptr<MediaLog> media_log)
+    MediaLog* media_log)
     : volume_(1.0),
       sink_(std::move(sink)),
       tee_filter_(new TeeFilter()),
-      media_log_(std::move(media_log)),
+      media_log_(media_log),
       weak_factory_(this) {}
 
 AudioSourceProviderImpl::~AudioSourceProviderImpl() {}
@@ -124,6 +124,11 @@ OutputDeviceInfo AudioSourceProviderImpl::GetOutputDeviceInfo() {
   base::AutoLock auto_lock(sink_lock_);
   return sink_ ? sink_->GetOutputDeviceInfo()
                : OutputDeviceInfo(OUTPUT_DEVICE_STATUS_ERROR_NOT_FOUND);
+}
+
+bool AudioSourceProviderImpl::IsOptimizedForHardwareParameters() {
+  base::AutoLock auto_lock(sink_lock_);
+  return true;
 }
 
 bool AudioSourceProviderImpl::CurrentThreadIsRenderingThread() {

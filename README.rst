@@ -2,7 +2,7 @@ About
 =====
 
 This is the C++ library which wrapper chromium media module to create media player.
-Now we use chromium version 59.0.3071.117.
+Now we use chromium version 62.0.3002.84.
 
 Features
 ========
@@ -25,7 +25,7 @@ How to build
 2. Checkout to the tag we use and sync relative repository. ::
 
     $ cd src
-    $ git checkout tags/59.0.3071.117 -b 59.0.3071.117
+    $ git checkout tags/62.0.3002.84 -b 62.0.3002.84
     $ gclient sync
 
 
@@ -57,4 +57,4 @@ Reference
 TODO
 ====
 
- * Support network media file (with network flow control)
+ * Add GTK to media_example

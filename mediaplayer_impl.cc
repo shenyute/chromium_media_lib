@@ -52,7 +52,7 @@ MediaPlayerImpl::MediaPlayerImpl(MediaPlayerParams& params)
   audio_source_provider_ = new AudioSourceProviderImpl(
       AudioDeviceFactory::NewSwitchableAudioRendererSink(owner_id_, 0, "",
                                                          url::Origin()),
-      media_log_);
+      media_log_.get());
 }
 
 MediaPlayerImpl::~MediaPlayerImpl() {}
@@ -176,15 +176,48 @@ void MediaPlayerImpl::OnWaitingForDecryptionKey() {
   NOTREACHED();
 }
 
+void MediaPlayerImpl::OnAudioConfigChange(const AudioDecoderConfig& config) {
+  DCHECK(main_task_runner_->BelongsToCurrentThread());
+  pipeline_metadata_.audio_decoder_config = config;
+}
+
+void MediaPlayerImpl::OnVideoConfigChange(const VideoDecoderConfig& config) {
+  DCHECK(main_task_runner_->BelongsToCurrentThread());
+
+  // TODO(chcunningham): Observe changes to video codec profile to signal
+  // beginning of a new Media Capabilities playback report.
+  pipeline_metadata_.video_decoder_config = config;
+}
+
 void MediaPlayerImpl::OnVideoNaturalSizeChange(const gfx::Size& size) {}
 
 void MediaPlayerImpl::OnVideoOpacityChange(bool opaque) {}
 
 void MediaPlayerImpl::OnVideoAverageKeyframeDistanceUpdate() {}
 
-void MediaPlayerImpl::SwitchRenderer(bool is_rendered_remotely) {}
+void MediaPlayerImpl::SwitchToRemoteRenderer(
+    const std::string& remote_device_friendly_name) {}
+
+void MediaPlayerImpl::SwitchToLocalRenderer() {}
 
 void MediaPlayerImpl::ActivateViewportIntersectionMonitoring(bool activate) {}
+
+void MediaPlayerImpl::UpdateRemotePlaybackCompatibility(bool is_compatible) {}
+
+size_t MediaPlayerImpl::AudioDecodedByteCount() const {
+  DCHECK(main_task_runner_->BelongsToCurrentThread());
+
+  PipelineStatistics stats = GetPipelineStatistics();
+  return stats.audio_bytes_decoded;
+}
+
+size_t MediaPlayerImpl::VideoDecodedByteCount() const {
+  DCHECK(main_task_runner_->BelongsToCurrentThread());
+
+  PipelineStatistics stats = GetPipelineStatistics();
+  return stats.video_bytes_decoded;
+}
+
 
 void MediaPlayerImpl::DataSourceInitialized(bool success) {
   DCHECK(main_task_runner_->BelongsToCurrentThread());
@@ -237,10 +270,11 @@ void MediaPlayerImpl::OnDemuxerOpened() {}
 
 std::unique_ptr<Renderer> MediaPlayerImpl::CreateRenderer() {
   DCHECK(main_task_runner_->BelongsToCurrentThread());
-  RequestSurfaceCB request_surface_cb;
+  RequestOverlayInfoCB request_overlay_info_cb;
   return renderer_factory_->CreateRenderer(
       media_task_runner_, worker_task_runner_, audio_source_provider_.get(),
-      video_renderer_sink_.get(), request_surface_cb);
+      video_renderer_sink_.get(), request_overlay_info_cb,
+      gfx::ColorSpace::CreateSRGB());
 }
 
 void MediaPlayerImpl::OnEncryptedMediaInitData(
@@ -253,6 +287,12 @@ void MediaPlayerImpl::OnEncryptedMediaInitData(
 void MediaPlayerImpl::OnFFmpegMediaTracksUpdated(
     std::unique_ptr<MediaTracks> tracks) {
   DCHECK(demuxer_.get());
+}
+
+PipelineStatistics MediaPlayerImpl::GetPipelineStatistics() const {
+  DCHECK(main_task_runner_->BelongsToCurrentThread());
+
+  return pipeline_controller_.GetStatistics();
 }
 
 }  // namespace media

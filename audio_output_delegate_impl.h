@@ -36,7 +36,6 @@ class MEDIA_EXPORT AudioOutputDelegateImpl : public AudioOutputDelegate {
   ~AudioOutputDelegateImpl() override;
 
   // AudioOutputDelegate implementation.
-  scoped_refptr<AudioOutputController> GetController() const override;
   int GetStreamId() const override;
   void OnPlayStream() override;
   void OnPauseStream() override;
