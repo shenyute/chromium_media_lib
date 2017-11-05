@@ -44,7 +44,9 @@ How to build
 
 5. Now you can execute basic sample as following. ::
 
-   $ ./out/Default/media_example <media file path>
+   $ ./out/Default/media_example --media-file=<local media file path>
+or
+   $ ./out/Default/media_example --resource-file=<HTTP URI>
 
 
 Reference
